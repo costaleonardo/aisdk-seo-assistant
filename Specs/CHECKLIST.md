@@ -5,12 +5,12 @@
 - ✅ **Project Structure**: COMPLETED (100%) 
 - 🔄 **Landing Page**: Basic version completed (75%)
 - ✅ **Database Setup**: COMPLETED (100%)
-- 🔄 **Core Library Functions**: Database client completed (25%)
+- ✅ **Core Library Functions**: COMPLETED (100%)
 - ❌ **API Endpoints**: NOT STARTED (0%)
 - ❌ **UI Components**: NOT STARTED (25% - basic landing page only)
-- ❌ **Type Definitions**: NOT STARTED (0%)
+- 🔄 **Type Definitions**: Partial (50% - types in db.ts and lib files)
 
-**Overall Progress: ~35% Complete**
+**Overall Progress: ~50% Complete**
 
 ## 🚀 Project Setup ✅ COMPLETED
 - [x] Initialize Next.js 14 project with App Router
@@ -41,24 +41,24 @@
   - [x] `src/lib/` (utility functions)
   - [x] `src/types/` (TypeScript definitions)
 
-## 🔧 Core Library Functions
-- [ ] **Web Scraper** (`lib/scraper.ts`)
-  - [ ] Implement `scrapeWebsite()` function
-  - [ ] Use Cheerio for HTML parsing
-  - [ ] Extract title and clean content
-  - [ ] Remove unwanted elements (script, style, nav, footer)
+## 🔧 Core Library Functions ✅ COMPLETED
+- [x] **Web Scraper** (`lib/scraper.ts`) ✅ COMPLETED
+  - [x] Implement `scrapeWebsite()` function
+  - [x] Use Cheerio for HTML parsing
+  - [x] Extract title and clean content
+  - [x] Remove unwanted elements (script, style, nav, footer)
 
-- [ ] **Text Chunking** (`lib/chunking.ts`)
-  - [ ] Implement `chunkContent()` function
-  - [ ] Split text by sentences
-  - [ ] Maintain chunk size limits (~1000 chars)
+- [x] **Text Chunking** (`lib/chunking.ts`) ✅ COMPLETED
+  - [x] Implement `chunkContent()` function
+  - [x] Split text by sentences
+  - [x] Maintain chunk size limits (~1000 chars)
 
-- [ ] **Vector Store** (`lib/vector-store.ts`)
-  - [ ] Implement `storeDocument()` function
-  - [ ] Generate embeddings with OpenAI
-  - [ ] Store documents and chunks in database
-  - [ ] Implement `vectorSearch()` function
-  - [ ] Use cosine similarity for search
+- [x] **Vector Store** (`lib/vector-store.ts`) ✅ COMPLETED
+  - [x] Implement `storeDocument()` function
+  - [x] Generate embeddings with OpenAI
+  - [x] Store documents and chunks in database
+  - [x] Implement `vectorSearch()` function
+  - [x] Use cosine similarity for search
 
 - [x] **Database Client** (`lib/db.ts`) ✅ COMPLETED
   - [x] Setup Neon database connection
@@ -102,11 +102,14 @@
   - [ ] `card.tsx` - Container component
 
 ## 🎯 Type Definitions
-- [ ] **Core Types** (`types/index.ts`)
-  - [ ] Document interface
-  - [ ] DocumentChunk interface
-  - [ ] API response types
-  - [ ] Error types
+- [x] **Core Types** (distributed across lib files) ✅ PARTIAL
+  - [x] Document interface (in `lib/db.ts`)
+  - [x] DocumentChunk interface (in `lib/db.ts`)
+  - [x] ScrapedContent interface (in `lib/scraper.ts`)
+  - [x] SearchResult interface (in `lib/vector-store.ts`)
+  - [x] ChunkOptions interface (in `lib/chunking.ts`)
+  - [ ] API response types (pending API implementation)
+  - [ ] Error types (basic error handling implemented)
 
 ## 🚀 Deployment Configuration
 - [ ] **Vercel Setup**

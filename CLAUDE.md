@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This is a **partially-implemented project** for an AI-powered RAG (Retrieval-Augmented Generation) system with SEO assistant capabilities. The project setup, database schema, and basic Next.js structure are complete (~35%), with some core functionality remaining to be implemented. Comprehensive specifications and development checklists exist in `Specs/`.
+This is a **partially-implemented project** for an AI-powered RAG (Retrieval-Augmented Generation) system with SEO assistant capabilities. The project setup, database schema, basic Next.js structure, and **all core library functions are complete (~65%)**. The main remaining work is API endpoints and UI components. Comprehensive specifications and development checklists exist in `Specs/`.
 
 ## Development Commands
 
@@ -54,11 +54,11 @@ src/
 │   ├── scrape-form.tsx        # URL input and processing
 │   ├── chat-interface.tsx     # Chat UI using useChat hook
 │   └── ui/                    # Base components (button, input, card)
-├── lib/                   # Core utilities (to be implemented)
-│   ├── scraper.ts            # Cheerio-based web scraping
-│   ├── chunking.ts           # Text segmentation logic
-│   ├── vector-store.ts       # Neon database operations
-│   └── db.ts                # Database client setup
+├── lib/                   # Core utilities (✅ IMPLEMENTED)
+│   ├── scraper.ts            # Cheerio-based web scraping with robust error handling
+│   ├── chunking.ts           # Advanced text segmentation with overlap support
+│   ├── vector-store.ts       # Complete Neon database operations with vector search
+│   └── db.ts                # Database client setup with type definitions
 └── types/                 # TypeScript definitions (to be implemented)
     └── index.ts              # Type definitions
 ```
@@ -107,11 +107,12 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 - Vector search threshold set to 0.7 similarity for relevance filtering
 - Streaming responses for real-time chat experience
 
-### Web Scraping Strategy
-- Cheerio for HTML parsing and content extraction
-- Removes unwanted elements (script, style, nav, footer)
-- Extracts clean text content and page titles
-- Sentence-based chunking with ~1000 character limits
+### Web Scraping Strategy (✅ IMPLEMENTED)
+- Advanced Cheerio-based HTML parsing with robust error handling
+- Removes unwanted elements (script, style, nav, footer, header, aside)
+- Prioritizes article content over general body text
+- Multiple fallback strategies for title extraction (title tag, h1, og:title)
+- Comprehensive content cleaning and normalization
 
 ### API Design
 - **POST /api/scrape**: Accepts `{url}`, returns `{document_id, chunks_created, success}`
@@ -121,10 +122,10 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 
 Based on `Specs/CHECKLIST.md`, the recommended implementation order is:
 1. ✅ **Database Setup**: Create Neon database, enable pgvector, run schema
-2. **Core Libraries**: Implement `lib/` functions (scraper, chunking, vector-store) - db.ts complete
+2. ✅ **Core Libraries**: All `lib/` functions implemented (scraper, chunking, vector-store, db)
 3. **API Endpoints**: Build scrape and chat routes with error handling  
 4. **UI Components**: Create form and chat interface using AI SDK React hooks
-5. **Type Definitions**: Add TypeScript interfaces and validation
+5. **Type Definitions**: TypeScript interfaces (partially complete - integrated in lib files)
 6. **Testing**: Manual testing of full scrape → chat flow
 
 ### Database Setup Instructions
@@ -135,17 +136,17 @@ The database is already configured. See `database/setup.md` for connection detai
 
 ## Current Implementation Status
 
-From `Specs/CHECKLIST.md`:
+Updated based on actual codebase analysis:
 - ✅ **Project Setup**: Complete (Next.js, dependencies, config)
 - ✅ **Project Structure**: Complete (directories created)
 - 🔄 **Landing Page**: Basic version (75% - needs component integration)
 - ✅ **Database Setup**: Complete (schema created, pgvector enabled)
-- 🔄 **Core Library Functions**: Database client complete (25% - scraper, chunking, vector-store remain)
+- ✅ **Core Library Functions**: All complete (scraper, chunking, vector-store, db with full type definitions)
 - ❌ **API Endpoints**: Not started
 - ❌ **UI Components**: Not started (except basic landing)
-- ❌ **Type Definitions**: Not started
+- 🔄 **Type Definitions**: Partially complete (comprehensive types in lib files)
 
-**Overall Progress: ~35% Complete**
+**Overall Progress: ~65% Complete**
 
 ## MVP Limitations
 
@@ -171,13 +172,43 @@ Key dependencies already installed:
 
 ## Critical Implementation Notes
 
-1. **Vector Search**: Use cosine similarity (`<=>` operator) with pgvector
-2. **Embedding Model**: OpenAI `text-embedding-ada-002` (1536 dimensions)
-3. **Chunking Strategy**: Sentence-based splitting, max 1000 chars per chunk
-4. **Error Handling**: Basic validation, no advanced error recovery
+1. **Vector Search**: Use cosine similarity (`<=>` operator) with pgvector - **IMPLEMENTED**
+2. **Embedding Model**: OpenAI `text-embedding-ada-002` (1536 dimensions) - **IMPLEMENTED** 
+3. **Chunking Strategy**: Advanced sentence-based splitting with overlap support - **IMPLEMENTED**
+4. **Error Handling**: Comprehensive error handling implemented in all core functions
 5. **Streaming**: AI SDK handles streaming for chat responses
-6. **Database Connection**: Use Neon serverless for edge compatibility
+6. **Database Connection**: Neon serverless client fully configured - **IMPLEMENTED**
+7. **Text Processing**: Smart content prioritization and multiple extraction strategies
 
 ## Next Steps
 
-Start with database setup and core library implementation. Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for task tracking.
+The core foundation is complete. Next priorities are:
+1. **API Endpoints**: Implement `/api/scrape` and `/api/chat` routes using completed lib functions
+2. **UI Components**: Build `ScrapeForm` and `ChatInterface` components using Vercel AI SDK React hooks  
+3. **Integration**: Connect components to landing page for full user flow
+4. **Testing**: Manual testing of complete scrape → chat workflow
+
+Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for task tracking.
+
+## Core Library Functions Status
+
+All core functions are fully implemented and ready to use:
+
+### scraper.ts
+- `scrapeWebsite(url)`: Complete with robust error handling, content prioritization
+- Handles various website structures with multiple fallback strategies
+
+### chunking.ts  
+- `chunkContent(text, options)`: Advanced chunking with overlap support
+- `chunkContentByTokens()`: Token-based chunking helper
+- `estimateTokens()`: Token estimation utility
+
+### vector-store.ts
+- `storeDocument()`: Stores documents with vector embeddings
+- `vectorSearch()`: Cosine similarity search with configurable threshold
+- `getDocumentById()`, `getAllDocuments()`, `deleteDocument()`: CRUD operations
+- `testVectorStore()`: Testing utility for debugging
+
+### db.ts
+- Database client with type definitions for `Document` and `DocumentChunk`
+- Proper environment variable validation
