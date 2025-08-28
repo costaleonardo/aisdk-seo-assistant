@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This is a **partially-implemented project** for an AI-powered RAG (Retrieval-Augmented Generation) system with SEO assistant capabilities. The project setup and basic Next.js structure are complete (~20%), but core functionality remains to be implemented. Comprehensive specifications and development checklists exist in `Specs/`.
+This is a **partially-implemented project** for an AI-powered RAG (Retrieval-Augmented Generation) system with SEO assistant capabilities. The project setup, database schema, and basic Next.js structure are complete (~35%), with some core functionality remaining to be implemented. Comprehensive specifications and development checklists exist in `Specs/`.
 
 ## Development Commands
 
@@ -120,12 +120,18 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 ## Development Workflow
 
 Based on `Specs/CHECKLIST.md`, the recommended implementation order is:
-1. **Database Setup**: Create Neon database, enable pgvector, run schema
-2. **Core Libraries**: Implement `lib/` functions (scraper, chunking, vector-store, db)
+1. ✅ **Database Setup**: Create Neon database, enable pgvector, run schema
+2. **Core Libraries**: Implement `lib/` functions (scraper, chunking, vector-store) - db.ts complete
 3. **API Endpoints**: Build scrape and chat routes with error handling  
 4. **UI Components**: Create form and chat interface using AI SDK React hooks
 5. **Type Definitions**: Add TypeScript interfaces and validation
 6. **Testing**: Manual testing of full scrape → chat flow
+
+### Database Setup Instructions
+The database is already configured. See `database/setup.md` for connection details. Schema includes:
+- `documents` table for scraped content
+- `document_chunks` table with vector embeddings (VECTOR(1536))
+- HNSW indexes for efficient similarity search
 
 ## Current Implementation Status
 
@@ -133,13 +139,13 @@ From `Specs/CHECKLIST.md`:
 - ✅ **Project Setup**: Complete (Next.js, dependencies, config)
 - ✅ **Project Structure**: Complete (directories created)
 - 🔄 **Landing Page**: Basic version (75% - needs component integration)
-- ❌ **Database Setup**: Not started
-- ❌ **Core Library Functions**: Not started  
+- ✅ **Database Setup**: Complete (schema created, pgvector enabled)
+- 🔄 **Core Library Functions**: Database client complete (25% - scraper, chunking, vector-store remain)
 - ❌ **API Endpoints**: Not started
 - ❌ **UI Components**: Not started (except basic landing)
 - ❌ **Type Definitions**: Not started
 
-**Overall Progress: ~20% Complete**
+**Overall Progress: ~35% Complete**
 
 ## MVP Limitations
 
