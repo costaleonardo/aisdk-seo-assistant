@@ -240,31 +240,11 @@ export async function vectorSearch(query: string, limit = 5) {
 
 ### Database RPC Function
 ```sql
--- Create similarity search function
-CREATE OR REPLACE FUNCTION match_documents (
-  query_embedding vector(1536),
-  match_threshold float,
-  match_count int
-)
-RETURNS table (
-  id bigint,
-  content text,
-  similarity float
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT
-    document_chunks.id,
-    document_chunks.content,
-    1 - (document_chunks.embedding <=> query_embedding) as similarity
-  FROM document_chunks
-  WHERE 1 - (document_chunks.embedding <=> query_embedding) > match_threshold
-  ORDER BY document_chunks.embedding <=> query_embedding
-  LIMIT match_count;
-END;
-$$;
+-- Enable pgvector extension (if not already enabled)
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Optional: Create an index for better performance
+CREATE INDEX ON document_chunks USING hnsw (embedding vector_cosine_ops);
 ```
 
 ## UI Components (MVP)
@@ -412,9 +392,8 @@ export default function ChatInterface() {
 # OpenAI
 OPENAI_API_KEY=sk-your-key
 
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Neon Database
+DATABASE_URL=postgresql://username:password@ep-xxx-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
 ```
 
 ## Deployment Configuration
@@ -441,7 +420,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
     "react": "18.2.0",
     "@ai-sdk/openai": "latest",
     "@ai-sdk/react": "latest",
-    "@supabase/supabase-js": "latest",
+    "@neondatabase/serverless": "latest",
     "cheerio": "latest",
     "zod": "latest"
   }
@@ -450,14 +429,15 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 ## MVP Deployment Steps
 
-1. **Setup Supabase**:
-   - Create new project
-   - Run database schema
-   - Get connection strings
+1. **Setup Neon Database**:
+   - Create new Neon project at neon.tech
+   - Enable pgvector extension
+   - Run database schema SQL
+   - Get connection string
 
 2. **Deploy to Vercel**:
    - Connect GitHub repo
-   - Add environment variables
+   - Add environment variables (DATABASE_URL, OPENAI_API_KEY)
    - Deploy
 
 3. **Test MVP**:
