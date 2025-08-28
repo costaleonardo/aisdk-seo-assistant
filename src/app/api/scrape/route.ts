@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     
     // Chunk the content using existing function
     const chunks = chunkContent(scrapedContent.content, {
-      maxTokens: 500,
+      maxLength: 500,
       overlap: 50
     });
     
