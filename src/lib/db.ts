@@ -13,6 +13,21 @@ export interface Document {
   url: string;
   title: string | null;
   content: string;
+  // SEO data columns
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+  meta_robots?: string | null;
+  canonical_url?: string | null;
+  og_title?: string | null;
+  og_description?: string | null;
+  og_image?: string | null;
+  og_type?: string | null;
+  twitter_title?: string | null;
+  twitter_description?: string | null;
+  twitter_image?: string | null;
+  twitter_card?: string | null;
+  schema_markup?: string[] | null;
   created_at: Date;
 }
 
@@ -21,5 +36,42 @@ export interface DocumentChunk {
   document_id: number;
   content: string;
   embedding: number[]; // Will be stored as VECTOR(1536) in database
+  created_at: Date;
+}
+
+export interface MetaTag {
+  id: number;
+  document_id: number;
+  tag_name?: string | null;
+  tag_property?: string | null;
+  tag_content: string;
+  created_at: Date;
+}
+
+export interface Heading {
+  id: number;
+  document_id: number;
+  level: number;
+  text: string;
+  order_index: number;
+  created_at: Date;
+}
+
+export interface Link {
+  id: number;
+  document_id: number;
+  url: string;
+  anchor_text: string;
+  is_internal: boolean;
+  created_at: Date;
+}
+
+export interface Image {
+  id: number;
+  document_id: number;
+  src: string;
+  alt: string;
+  width?: number | null;
+  height?: number | null;
   created_at: Date;
 }
