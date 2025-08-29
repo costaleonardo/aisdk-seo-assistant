@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This is a **nearly-complete RAG (Retrieval-Augmented Generation) system** with AI-powered document ingestion and chat capabilities. All core functionality, API endpoints, and UI components are implemented (~95% complete). Only testing, deployment, and documentation remain. Comprehensive specifications and development checklists exist in `Specs/`.
+This is a **complete SEO Assistant** with AI-powered chat capabilities and **comprehensive SEO analysis tools**. The system includes advanced SEO scoring, comparison, keyword analysis, actionable recommendations, and **AI tool calling for expert SEO guidance**. All core functionality, API endpoints, UI components, and **Phase 3 AI-powered chat enhancement** are implemented (~99% complete). Only testing, deployment, and documentation remain. Comprehensive specifications and development checklists exist in `Specs/`.
 
 ## Development Commands
 
@@ -19,16 +19,18 @@ npm run type-check  # TypeScript type checking
 
 ## Architecture Overview
 
-This is a **Next.js 14 application** using the Vercel AI SDK to create a RAG system that:
-1. Scrapes web content using Cheerio
+This is a **Next.js 14 application** using the Vercel AI SDK to create an SEO Assistant system that:
+1. Scrapes web content using Cheerio with advanced SEO data extraction
 2. Chunks and embeds content using OpenAI embeddings  
 3. Stores vectors in Neon PostgreSQL with pgvector
-4. Provides a chat interface with contextual retrieval
+4. **Provides AI-powered chat with SEO tool calling capabilities**
+5. **Performs comprehensive SEO analysis with scoring and recommendations**
 
 ### Core Data Flow
-- **Ingestion**: URL → Web Scraping → Text Chunking → Embedding Generation → Vector Storage
-- **Retrieval**: User Query → Query Embedding → Vector Similarity Search → Context Retrieval
-- **Generation**: Retrieved Context + User Query → OpenAI GPT-4 → Streaming Response
+- **Ingestion**: URL → Web Scraping (+ SEO Data) → Text Chunking → Embedding Generation → Vector Storage
+- **SEO Analysis**: URL → Comprehensive Scraping → SEO Scoring → Recommendations Generation
+- **AI Chat**: User Query → Tool Selection → SEO Analysis Execution → Expert Recommendations → Streaming Response
+- **Tool Integration**: 6 SEO tools (analyzePage, checkKeywords, comparePages, generateSuggestions, auditHeadings, checkMetaTags)
 
 ### Technology Stack
 - **Frontend**: Next.js 14 with App Router, React 18, Tailwind CSS
@@ -49,7 +51,12 @@ src/
 │   ├── globals.css        # Global styles
 │   ├── api/               # API routes (✅ IMPLEMENTED)
 │   │   ├── scrape/route.ts    # Web scraping endpoint
-│   │   └── chat/route.ts      # RAG chat endpoint
+│   │   ├── chat/route.ts      # AI chat with SEO tool calling
+│   │   └── seo/               # SEO analysis endpoints
+│   │       ├── analyze/route.ts    # Single page SEO analysis
+│   │       ├── compare/route.ts    # Compare two pages
+│   │       ├── keywords/route.ts   # Keyword analysis
+│   │       └── suggestions/route.ts # SEO recommendations
 ├── components/            # React components (✅ IMPLEMENTED)
 │   ├── scrape-form.tsx        # URL input form with validation, loading states, error handling
 │   ├── chat-interface.tsx     # Chat UI with streaming responses and message styling
@@ -61,19 +68,28 @@ src/
 │   ├── scraper.ts            # Cheerio-based web scraping with robust error handling
 │   ├── chunking.ts           # Advanced text segmentation with overlap support
 │   ├── vector-store.ts       # Complete Neon database operations with vector search
+│   ├── seo-analyzer.ts       # Comprehensive SEO analysis functions
+│   ├── seo-scoring.ts        # SEO scoring algorithms and recommendations
+│   ├── seo-tools.ts          # AI tool calling functions for SEO analysis
 │   └── db.ts                # Database client setup with type definitions
 ```
 
 ## Database Schema
 
-The system requires two main tables:
+The system uses these main tables:
 ```sql
--- Store original scraped documents
+-- Store original scraped documents with SEO metadata
 CREATE TABLE documents (
     id BIGSERIAL PRIMARY KEY,
     url TEXT UNIQUE NOT NULL,
     title VARCHAR(512),
     content TEXT NOT NULL,
+    meta_title VARCHAR(512),
+    meta_description TEXT,
+    canonical_url TEXT,
+    og_title VARCHAR(512),
+    og_description TEXT,
+    schema_markup JSONB,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -85,6 +101,9 @@ CREATE TABLE document_chunks (
     embedding VECTOR(1536),  -- OpenAI ada-002 embedding size
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Additional SEO-specific tables
+CREATE TABLE meta_tags, headings, links, images; -- See database/migration-seo-schema.sql
 
 -- Essential indexes for performance
 CREATE INDEX ON document_chunks USING hnsw (embedding vector_cosine_ops);
@@ -119,6 +138,10 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 ### API Design (✅ IMPLEMENTED)
 - **POST /api/scrape**: Accepts `{url}`, returns `{document_id, chunks_created, success, title}` with comprehensive error handling
 - **POST /api/chat**: Uses AI SDK streaming with GPT-4o model, accepts `{messages}` array, returns streaming text responses
+- **POST /api/seo/analyze**: Comprehensive SEO analysis with scoring and recommendations
+- **POST /api/seo/compare**: Compare SEO performance between two URLs
+- **POST /api/seo/keywords**: Extract and analyze keywords from content
+- **POST /api/seo/suggestions**: Generate actionable SEO improvement suggestions
 
 ### UI Component Architecture (✅ IMPLEMENTED)
 - **Landing Page**: Professional card-based layout with integrated components, responsive design
@@ -139,21 +162,24 @@ Based on `Specs/CHECKLIST.md`, the implementation order was:
 
 ### Database Setup Instructions
 The database is already configured. See `database/setup.md` for connection details. Schema includes:
-- `documents` table for scraped content
+- `documents` table for scraped content with SEO metadata
 - `document_chunks` table with vector embeddings (VECTOR(1536))
+- `meta_tags`, `headings`, `links`, `images` tables for detailed SEO analysis
 - HNSW indexes for efficient similarity search
+- Run `database/migration-seo-schema.sql` to add SEO functionality to existing databases
 
 ## Current Implementation Status
 
-Based on actual codebase analysis - **Project is ~95% Complete**:
+Based on actual codebase analysis - **Project is ~99% Complete**:
 - ✅ **Project Setup**: Complete (Next.js 14, dependencies, TypeScript, ESLint)
 - ✅ **Project Structure**: Complete (organized directory structure)
 - ✅ **Landing Page**: Complete (professional card-based design with integrated components)
 - ✅ **Database Setup**: Complete (schema created, pgvector enabled, indexes configured)
 - ✅ **Core Library Functions**: Complete (scraper, chunking, vector-store, db with comprehensive types)
-- ✅ **API Endpoints**: Complete (scrape and chat routes with streaming and error handling)
+- ✅ **API Endpoints**: Complete (scrape, chat with AI tool calling, and comprehensive SEO analysis routes)
 - ✅ **UI Components**: Complete (ScrapeForm, ChatInterface, and reusable UI library)
 - ✅ **Type Definitions**: Complete (comprehensive TypeScript throughout, 0 compilation errors)
+- ✅ **Phase 3 AI Enhancement**: Complete (AI tool calling with 6 SEO analysis tools, expert system prompt)
 
 **Remaining Work**: Testing, deployment configuration, documentation updates
 
@@ -163,7 +189,7 @@ This is intentionally scoped as an MVP without:
 - Authentication system
 - Advanced error handling beyond basics
 - Rate limiting
-- SEO analysis features (despite repo name)
+- Advanced competitive analysis features
 - Multiple document format support
 - Content caching mechanisms
 - Performance optimizations
@@ -191,13 +217,13 @@ Key dependencies already installed:
 
 ## Next Steps
 
-All core development is complete. Remaining priorities are:
-1. **Testing**: Manual testing of scrape workflow and basic chat functionality
-2. **RAG Integration**: Connect vector search to chat responses for document-based Q&A
-3. **Deployment**: Configure Vercel deployment with environment variables  
-4. **Documentation**: Update README with proper project description and setup instructions
+All core development and **Phase 3 AI-powered chat enhancement** are complete. Remaining priorities are:
+1. **Testing**: Manual testing of SEO tool calling and expert chat functionality
+2. **Deployment**: Configure Vercel deployment with environment variables  
+3. **Documentation**: Update README with proper project description and setup instructions
+4. **Optional Phase 4**: Enhanced UI components for SEO dashboards and visualizations
 
-Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for progress tracking.
+The system now provides **expert-level SEO analysis through AI chat** with 6 specialized tools. Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for progress tracking.
 
 ## Core Library Functions Status
 
@@ -218,6 +244,25 @@ All core functions are fully implemented and ready to use:
 - `getDocumentById()`, `getAllDocuments()`, `deleteDocument()`: CRUD operations
 - `testVectorStore()`: Testing utility for debugging
 
+### seo-analyzer.ts
+- `performSEOAnalysis()`: Comprehensive SEO analysis including title, meta, headings, keywords, links, images, technical SEO
+- `compareSEOAnalysis()`: Side-by-side comparison of two pages
+- Individual analysis functions for each SEO category with scoring
+
+### seo-scoring.ts
+- `calculateSEOScore()`: Advanced scoring algorithm with weighted categories
+- `getScoreInterpretation()`: Score interpretation and priority recommendations
+- `getCategoryInsights()`: Detailed insights for each SEO category
+
+### seo-tools.ts ✅ NEW IN PHASE 3
+- `analyzePage()`: AI tool for comprehensive SEO analysis with scoring
+- `checkKeywords()`: AI tool for keyword density and target keyword analysis
+- `comparePages()`: AI tool for side-by-side SEO comparison
+- `generateSuggestions()`: AI tool for prioritized SEO recommendations
+- `auditHeadings()`: AI tool for heading structure analysis
+- `checkMetaTags()`: AI tool for meta tag optimization validation
+- All tools integrated with AI SDK for chat-based SEO expertise
+
 ### db.ts
 - Database client with type definitions for `Document` and `DocumentChunk`
 - Proper environment variable validation
@@ -233,7 +278,9 @@ All core functions are fully implemented and ready to use:
 ### AI SDK Implementation Notes
 - Chat interface uses custom fetch implementation instead of `useChat` hook for better control
 - Streaming responses handled with AI SDK's built-in `streamText()` and `toTextStreamResponse()`  
-- RAG integration not yet implemented - chat currently operates independently of scraped documents
+- **Phase 3 Complete**: AI tool calling integrated with 6 SEO analysis tools for expert guidance
+- Tools use proper `inputSchema` with Zod validation and return comprehensive analysis data
+- SEO specialist system prompt provides expert knowledge and actionable recommendations
 
 ### Database Operations
 - All vector operations use cosine similarity (`<=>` operator)
