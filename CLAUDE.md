@@ -102,12 +102,12 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 
 ## Key Implementation Patterns
 
-### RAG Implementation (✅ IMPLEMENTED)
-- Uses Vercel AI SDK's `streamText()` for chat functionality
-- Basic chat implementation without tool calling (simplified for MVP)
+### Chat Implementation (✅ IMPLEMENTED)
+- Uses Vercel AI SDK's `streamText()` with GPT-4o model
+- Basic chat functionality without RAG integration (simplified for MVP)
 - Custom fetch-based streaming in ChatInterface component
-- Vector search threshold set to 0.7 similarity for relevance filtering
-- GPT-4o model integration with proper error handling
+- System prompt configured for general AI assistant behavior
+- Comprehensive error handling and proper request validation
 
 ### Web Scraping Strategy (✅ IMPLEMENTED)
 - Advanced Cheerio-based HTML parsing with robust error handling
@@ -118,7 +118,7 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 
 ### API Design (✅ IMPLEMENTED)
 - **POST /api/scrape**: Accepts `{url}`, returns `{document_id, chunks_created, success, title}` with comprehensive error handling
-- **POST /api/chat**: Uses AI SDK streaming with GPT-4o model, basic chat without RAG tool integration (simplified for MVP)
+- **POST /api/chat**: Uses AI SDK streaming with GPT-4o model, accepts `{messages}` array, returns streaming text responses
 
 ### UI Component Architecture (✅ IMPLEMENTED)
 - **Landing Page**: Professional card-based layout with integrated components, responsive design
@@ -192,10 +192,10 @@ Key dependencies already installed:
 ## Next Steps
 
 All core development is complete. Remaining priorities are:
-1. **Testing**: Manual testing of complete scrape → chat workflow with real URLs
-2. **Deployment**: Configure Vercel deployment with environment variables
-3. **RAG Integration**: Optional enhancement to connect vector search to chat responses
-4. **Documentation**: Update README and add deployment instructions
+1. **Testing**: Manual testing of scrape workflow and basic chat functionality
+2. **RAG Integration**: Connect vector search to chat responses for document-based Q&A
+3. **Deployment**: Configure Vercel deployment with environment variables  
+4. **Documentation**: Update README with proper project description and setup instructions
 
 Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for progress tracking.
 
@@ -231,9 +231,9 @@ All core functions are fully implemented and ready to use:
 - Responsive design is required (mobile + desktop)
 
 ### AI SDK Implementation Notes
-- Chat interface uses custom fetch implementation instead of `useChat` hook due to AI SDK version compatibility
-- Streaming responses are handled manually with ReadableStream
-- Tool calling is simplified for MVP (basic chat without RAG integration)
+- Chat interface uses custom fetch implementation instead of `useChat` hook for better control
+- Streaming responses handled with AI SDK's built-in `streamText()` and `toTextStreamResponse()`  
+- RAG integration not yet implemented - chat currently operates independently of scraped documents
 
 ### Database Operations
 - All vector operations use cosine similarity (`<=>` operator)
