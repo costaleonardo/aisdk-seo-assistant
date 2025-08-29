@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+/* Color Variables */
+:root {
+  /* Primary Colors */
+  --color-white: #FFFFFF;
+  --color-unifying-blue: #003D5B;
+  --color-jade-green: #007380;
+  
+  /* Secondary Colors - Seafoam Teal */
+  --color-seafoam-100: #25E2CC;
+  --color-seafoam-80: #51EBD6;
+  --color-seafoam-60: #7CEEE0;
+  --color-seafoam-40: #A8F3EB;
+  --color-seafoam-20: #D3F9F5;
+  --color-seafoam-10: #E9FCFA;
+  
+  /* Accent Colors */
+  --color-tangerine-100: #FF8400;
+  --color-tangerine-20: #FFE6CC;
+  --color-sunshine-100: #FBCA18;
+  --color-sunshine-20: #FEF4D1;
+  --color-raspberry: #CC3262;
+  
+  /* Text Colors */
+  --color-light-gray: #F2F2F2;
+  --color-text-gray: #2A2B2C;
+}
+
+/* Typography Styles */
+.heading-1 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 48px;
+  line-height: 50px;
+}
+
+.heading-2 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 600; /* SemiBold */
+  font-size: 36px;
+  line-height: 40px;
+}
+
+.heading-3 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 600; /* SemiBold */
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.heading-4 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 600; /* SemiBold */
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.heading-5 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 600; /* SemiBold */
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.body-medium {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.body-regular {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 400; /* Regular */
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.body-bold {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.caption-medium {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.caption-regular {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 400; /* Regular */
+  font-size: 12px;
+  line-height: 16px;
+}

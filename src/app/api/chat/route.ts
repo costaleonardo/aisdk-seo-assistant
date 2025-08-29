@@ -51,11 +51,10 @@ Guidelines:
 - Always explain findings in clear, actionable terms specific to Concentrix's needs`,
       messages: modelMessages,
       stopWhen: stepCountIs(5),
-      onStepFinish: ({ text, toolCalls, toolResults, stepType, usage }) => {
+      onStepFinish: ({ text, toolCalls, toolResults, usage }) => {
         console.log('Step finished:', {
-          stepType,
-          toolCalls: toolCalls?.map(tc => ({ name: tc.toolName, args: tc.args })),
-          toolResults: toolResults?.map(tr => ({ toolCallId: tr.toolCallId, result: tr.result })),
+          toolCalls: toolCalls?.map(tc => ({ name: tc.toolName })),
+          toolResults: toolResults?.map(tr => ({ toolCallId: tr.toolCallId })),
           textLength: text?.length || 0
         });
       },
