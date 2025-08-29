@@ -7,7 +7,7 @@ export default function Home() {
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="hidden md:flex items-center justify-center p-4 border-b border-gray-200 bg-white">
-        <h1 className="text-heading-3 font-semibold text-gray-800">SEO Chat Assistant</h1>
+        <h1 className="text-heading-3 font-semibold text-gray-800">Concentrix SEO Assistant - Team Portal</h1>
       </div>
       
       {/* Chat Interface */}

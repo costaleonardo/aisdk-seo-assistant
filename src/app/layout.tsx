@@ -10,8 +10,8 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: 'AI SDK SEO Assistant',
-  description: 'RAG system with SEO assistant capabilities',
+  title: 'Concentrix SEO Assistant - Internal Team Portal',
+  description: 'AI-powered SEO analysis and optimization tool for Concentrix team members',
 }
 
 export default function RootLayout({

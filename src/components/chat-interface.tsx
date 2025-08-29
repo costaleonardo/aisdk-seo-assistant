@@ -121,15 +121,15 @@ export default function ChatInterface() {
                 <svg className="mx-auto h-16 w-16 text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <h2 className="text-heading-4 font-semibold text-gray-800 mb-2">Welcome to SEO Assistant</h2>
+                <h2 className="text-heading-4 font-semibold text-gray-800 mb-2">Concentrix SEO Assistant</h2>
                 <p className="text-body font-regular text-gray-600">
-                  I&apos;m here to help you with SEO analysis and insights. You can ask me about website optimization, 
-                  content analysis, or any other SEO-related questions. Try asking something like:
+                  Welcome, team member! I have access to all Concentrix website content and can help you optimize 
+                  our SEO performance. Ask me about our pages, content analysis, or SEO improvements.
                 </p>
                 <div className="mt-4 space-y-2 text-caption font-regular text-gray-500">
-                  <p>&quot;Analyze the SEO performance of example.com&quot;</p>
-                  <p>&quot;What are the best practices for meta descriptions?&quot;</p>
-                  <p>&quot;Help me improve my website&apos;s SEO score&quot;</p>
+                  <p>&quot;What is our homepage meta description?&quot;</p>
+                  <p>&quot;Analyze the SEO score for our services pages&quot;</p>
+                  <p>&quot;Find keyword opportunities for Concentrix content&quot;</p>
                 </div>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function ChatInterface() {
             <div className="flex-1 relative">
               <input
                 value={input}
-                placeholder="Ask me anything about SEO optimization, website analysis, or content strategy..."
+                placeholder="Ask about Concentrix SEO performance, analyze pages, or get optimization recommendations..."
                 onChange={(e) => setInput(e.target.value)}
                 className="w-full px-4 py-3 pr-12 text-body font-regular text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none shadow-sm"
                 disabled={isLoading}

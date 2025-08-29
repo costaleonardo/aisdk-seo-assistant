@@ -53,17 +53,14 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 z-50 h-full w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 z-50 h-full w-64 bg-[#003D5B] text-white transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:static md:z-auto
       `}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <h1 className="text-heading-5 font-semibold">SEO Assistant</h1>
+            <img src="//www.concentrix.com/wp-content/uploads/2024/02/concentrix_logo.webp" alt="" />
           </div>
           
           {/* Close button for mobile */}
@@ -75,15 +72,15 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </button>
         </div>
 
-        {/* New Chat Button */}
-        <div className="p-4">
+        {/* New Chat Button - Hidden for now */}
+        {/* <div className="p-4">
           <Link href="/">
             <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
               <Plus className="w-4 h-4" />
               <span className="text-body font-medium">New Chat</span>
             </button>
           </Link>
-        </div>
+        </div> */}
 
         {/* Navigation */}
         <nav className="px-4 pb-4">
@@ -119,8 +116,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Bottom section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
           <div className="text-caption font-regular text-slate-400 text-center">
-            <p>AI-powered SEO insights</p>
-            <p className="mt-1 text-caption font-regular">Powered by OpenAI</p>
+            <p>Concentrix SEO Assistant</p>
+            <p className="mt-1 text-caption font-regular">For internal team use only</p>
           </div>
         </div>
       </div>
