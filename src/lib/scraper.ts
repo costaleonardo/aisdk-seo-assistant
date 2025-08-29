@@ -1,5 +1,187 @@
 import * as cheerio from 'cheerio';
 
+// Content analysis helper functions
+export function analyzeContentQuality(content: string, title: string, headings: Heading[]): ContentQualityMetrics {
+  // Basic text analysis
+  const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  
+  const word_count = words.length;
+  const sentence_count = sentences.length;
+  const paragraph_count = Math.max(paragraphs.length, 1);
+  
+  const average_sentence_length = sentence_count > 0 ? word_count / sentence_count : 0;
+  const average_words_per_paragraph = paragraph_count > 0 ? word_count / paragraph_count : 0;
+  
+  // Readability score (simplified Flesch Reading Ease)
+  const avgWordsPerSentence = average_sentence_length;
+  const avgSyllablesPerWord = estimateAverageSyllables(words);
+  const readability_score = Math.max(0, Math.min(100, 
+    206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord)
+  ));
+  
+  // Reading time (average 200 words per minute)
+  const reading_time_minutes = Math.ceil(word_count / 200);
+  
+  // Extract topic keywords
+  const topic_keywords = extractTopicKeywords(content, title, headings);
+  
+  // Extract semantic keywords
+  const semantic_keywords = extractSemanticKeywords(content, topic_keywords);
+  
+  // Content depth score (based on word count, headings, and topic coverage)
+  const content_depth_score = calculateContentDepthScore(
+    word_count, 
+    headings.length, 
+    topic_keywords.length,
+    semantic_keywords.length
+  );
+  
+  // Determine content type
+  const content_type = determineContentType(content, title, headings);
+  
+  return {
+    word_count,
+    sentence_count,
+    paragraph_count,
+    average_sentence_length: Math.round(average_sentence_length * 100) / 100,
+    average_words_per_paragraph: Math.round(average_words_per_paragraph * 100) / 100,
+    readability_score: Math.round(readability_score * 100) / 100,
+    reading_time_minutes,
+    content_depth_score,
+    topic_keywords,
+    semantic_keywords,
+    content_type
+  };
+}
+
+function estimateAverageSyllables(words: string[]): number {
+  if (words.length === 0) return 0;
+  
+  let totalSyllables = 0;
+  words.forEach(word => {
+    // Simple syllable estimation
+    let syllables = word.toLowerCase().match(/[aeiouy]+/g)?.length || 1;
+    if (word.endsWith('e')) syllables--;
+    if (syllables === 0) syllables = 1;
+    totalSyllables += syllables;
+  });
+  
+  return totalSyllables / words.length;
+}
+
+function extractTopicKeywords(content: string, title: string, headings: Heading[]): string[] {
+  // Combine title and headings for topic analysis
+  const topicText = [title, ...headings.map(h => h.text)].join(' ').toLowerCase();
+  const contentText = content.toLowerCase();
+  
+  // Extract meaningful words (3+ characters, not common stop words)
+  const stopWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will', 'just', 'don', 'should', 'now']);
+  
+  const words = topicText.match(/\b\w{3,}\b/g) || [];
+  const wordFreq: { [key: string]: number } = {};
+  
+  words.forEach(word => {
+    if (!stopWords.has(word)) {
+      wordFreq[word] = (wordFreq[word] || 0) + 1;
+    }
+  });
+  
+  // Get top keywords that appear in content
+  return Object.entries(wordFreq)
+    .filter(([word]) => contentText.includes(word))
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([word]) => word);
+}
+
+function extractSemanticKeywords(content: string, topicKeywords: string[]): string[] {
+  const contentWords = content.toLowerCase().match(/\b\w{4,}\b/g) || [];
+  const wordFreq: { [key: string]: number } = {};
+  
+  // Common business and technology semantic keywords for Concentrix context
+  const semanticPatterns = [
+    'digital', 'technology', 'transformation', 'automation', 'artificial', 'intelligence',
+    'customer', 'experience', 'service', 'support', 'solution', 'platform',
+    'cloud', 'data', 'analytics', 'insights', 'optimization', 'efficiency',
+    'business', 'process', 'management', 'strategy', 'innovation', 'growth',
+    'enterprise', 'scalable', 'integration', 'workflow', 'performance'
+  ];
+  
+  contentWords.forEach(word => {
+    if (semanticPatterns.includes(word) && !topicKeywords.includes(word)) {
+      wordFreq[word] = (wordFreq[word] || 0) + 1;
+    }
+  });
+  
+  return Object.entries(wordFreq)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 8)
+    .map(([word]) => word);
+}
+
+function calculateContentDepthScore(wordCount: number, headingCount: number, topicKeywordCount: number, semanticKeywordCount: number): number {
+  let score = 0;
+  
+  // Word count scoring (0-30 points)
+  if (wordCount >= 2000) score += 30;
+  else if (wordCount >= 1000) score += 25;
+  else if (wordCount >= 500) score += 20;
+  else if (wordCount >= 300) score += 15;
+  else if (wordCount >= 150) score += 10;
+  else score += 5;
+  
+  // Heading structure scoring (0-25 points)
+  if (headingCount >= 8) score += 25;
+  else if (headingCount >= 5) score += 20;
+  else if (headingCount >= 3) score += 15;
+  else if (headingCount >= 1) score += 10;
+  
+  // Topic coverage scoring (0-25 points)
+  if (topicKeywordCount >= 8) score += 25;
+  else if (topicKeywordCount >= 5) score += 20;
+  else if (topicKeywordCount >= 3) score += 15;
+  else if (topicKeywordCount >= 1) score += 10;
+  
+  // Semantic richness scoring (0-20 points)
+  if (semanticKeywordCount >= 6) score += 20;
+  else if (semanticKeywordCount >= 4) score += 15;
+  else if (semanticKeywordCount >= 2) score += 10;
+  else if (semanticKeywordCount >= 1) score += 5;
+  
+  return Math.min(score, 100);
+}
+
+function determineContentType(content: string, title: string, headings: Heading[]): 'informational' | 'commercial' | 'navigational' | 'mixed' {
+  const allText = [title, ...headings.map(h => h.text), content].join(' ').toLowerCase();
+  
+  // Commercial indicators
+  const commercialKeywords = ['buy', 'purchase', 'price', 'cost', 'sale', 'discount', 'offer', 'deal', 'product', 'service', 'pricing', 'quote', 'contact', 'demo', 'trial'];
+  const commercialCount = commercialKeywords.filter(keyword => allText.includes(keyword)).length;
+  
+  // Informational indicators
+  const informationalKeywords = ['how', 'what', 'why', 'when', 'where', 'guide', 'tutorial', 'learn', 'understand', 'explain', 'definition', 'overview', 'introduction'];
+  const informationalCount = informationalKeywords.filter(keyword => allText.includes(keyword)).length;
+  
+  // Navigational indicators
+  const navigationalKeywords = ['home', 'about', 'contact', 'careers', 'team', 'company', 'location', 'address', 'phone', 'email'];
+  const navigationalCount = navigationalKeywords.filter(keyword => allText.includes(keyword)).length;
+  
+  const maxCount = Math.max(commercialCount, informationalCount, navigationalCount);
+  
+  if (maxCount === 0) return 'informational'; // Default
+  
+  const scores = { commercial: commercialCount, informational: informationalCount, navigational: navigationalCount };
+  const tied = Object.values(scores).filter(score => score === maxCount).length > 1;
+  
+  if (tied) return 'mixed';
+  
+  if (commercialCount === maxCount) return 'commercial';
+  if (navigationalCount === maxCount) return 'navigational';
+  return 'informational';
+}
+
 export interface MetaTag {
   name?: string;
   property?: string;
@@ -25,6 +207,20 @@ export interface ImageData {
   height?: number;
 }
 
+export interface ContentQualityMetrics {
+  word_count: number;
+  sentence_count: number;
+  paragraph_count: number;
+  average_sentence_length: number;
+  average_words_per_paragraph: number;
+  readability_score: number;
+  reading_time_minutes: number;
+  content_depth_score: number;
+  topic_keywords: string[];
+  semantic_keywords: string[];
+  content_type: 'informational' | 'commercial' | 'navigational' | 'mixed';
+}
+
 export interface SEOData {
   meta_title?: string;
   meta_description?: string;
@@ -47,6 +243,7 @@ export interface ScrapedContent {
   content: string;
   url: string;
   seo_data: SEOData;
+  content_quality: ContentQualityMetrics;
   meta_tags: MetaTag[];
   headings: Heading[];
   links: LinkData[];
@@ -209,11 +406,15 @@ export async function scrapeWebsite(url: string): Promise<ScrapedContent> {
       throw new Error('No content found on the page');
     }
     
+    // Analyze content quality metrics
+    const contentQuality = analyzeContentQuality(cleanedContent, title.trim(), headings);
+    
     return {
       title: title.trim(),
       content: cleanedContent,
       url,
       seo_data: seoData,
+      content_quality: contentQuality,
       meta_tags: metaTags,
       headings,
       links,
