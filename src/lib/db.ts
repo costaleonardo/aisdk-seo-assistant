@@ -28,6 +28,18 @@ export interface Document {
   twitter_image?: string | null;
   twitter_card?: string | null;
   schema_markup?: string[] | null;
+  // Content quality metrics columns
+  word_count?: number | null;
+  sentence_count?: number | null;
+  paragraph_count?: number | null;
+  average_sentence_length?: number | null;
+  average_words_per_paragraph?: number | null;
+  readability_score?: number | null;
+  reading_time_minutes?: number | null;
+  content_depth_score?: number | null;
+  topic_keywords?: string[] | null;
+  semantic_keywords?: string[] | null;
+  content_type?: string | null;
   created_at: Date;
 }
 

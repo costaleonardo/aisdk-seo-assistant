@@ -342,3 +342,261 @@ The current implementation excludes:
   - [ ] Configure new environment variables
   - [ ] Test production deployment
   - [ ] Validate all SEO features work in production
+
+---
+
+# 🌐 Concentrix Web Scraping Implementation Checklist
+
+## Overview
+Complete implementation plan for scraping all English-language Concentrix web pages into the vector database.
+
+**Scope**: ~2,961 total pages (English-only from filtered sitemaps)
+**Estimated Time**: ~20 hours for full scrape with 5 concurrent workers
+
+---
+
+## Phase 1: Sitemap Parser & URL Discovery ⏱️ 2 hours
+
+### 1.1 Create Sitemap Parser Module
+- [ ] Create `src/lib/sitemap-parser.ts`
+- [ ] Implement XML parsing for sitemap index
+- [ ] Parse individual sitemaps (page-sitemap.xml, post-sitemap.xml, etc.)
+- [ ] Extract URL and lastmod date for each entry
+
+### 1.2 Language Filtering Logic
+- [ ] Create regex pattern for non-English URLs: `/(ar|zh-hans|nl|en-gb|fr|de|id|it|ja|ko|pt-br|es|es-es|th|tr|vi)/`
+- [ ] Filter out URL-encoded non-English paths (e.g., `%e5%90%88`)
+- [ ] Implement whitelist for English-only paths
+- [ ] Add unit tests for language detection
+
+### 1.3 URL Collection & Validation
+- [ ] Fetch and parse all sitemaps from index
+- [ ] Deduplicate URLs across multiple sitemaps
+- [ ] Validate URL format and accessibility
+- [ ] Export filtered English URLs to JSON for verification
+
+---
+
+## Phase 2: Database Schema Updates ⏱️ 1 hour
+
+### 2.1 Create Scraping Jobs Table
+- [ ] Create `database/migration-scraping-jobs.sql`
+- [ ] Define scraping_jobs table structure:
+  ```sql
+  - id (primary key)
+  - status (pending/running/completed/failed)
+  - total_urls (integer)
+  - processed_urls (integer)
+  - failed_urls (integer)
+  - started_at (timestamp)
+  - completed_at (timestamp)
+  ```
+
+### 2.2 Create URL Queue Table
+- [ ] Define url_queue table structure:
+  ```sql
+  - id (primary key)
+  - job_id (foreign key to scraping_jobs)
+  - url (unique varchar)
+  - status (pending/processing/completed/failed)
+  - attempts (integer, default 0)
+  - last_error (text)
+  - processed_at (timestamp)
+  ```
+
+### 2.3 Add Indexes for Performance
+- [ ] Create index on url_queue.status for quick filtering
+- [ ] Create index on url_queue.job_id for job queries
+- [ ] Create unique index on documents.url for duplicate detection
+- [ ] Run migration script to update database
+
+---
+
+## Phase 3: Batch Scraping Infrastructure ⏱️ 3 hours
+
+### 3.1 Create Batch Scraper Module
+- [ ] Create `src/lib/batch-scraper.ts`
+- [ ] Implement worker pool pattern (5 concurrent workers)
+- [ ] Add rate limiting: 2 requests/second
+- [ ] Implement exponential backoff for retries
+
+### 3.2 Queue Management System
+- [ ] Create `src/lib/scraping-queue.ts`
+- [ ] Implement job creation and URL queueing
+- [ ] Add methods to claim URLs for processing
+- [ ] Handle job status updates and progress tracking
+
+### 3.3 Error Handling & Recovery
+- [ ] Implement retry logic (max 3 attempts)
+- [ ] Create dead letter queue for failed URLs
+- [ ] Add timeout handling (30 seconds per page)
+- [ ] Log errors with context for debugging
+
+### 3.4 Progress Tracking
+- [ ] Update job progress in real-time
+- [ ] Calculate and store success/failure rates
+- [ ] Estimate remaining time based on current speed
+- [ ] Implement checkpoint system for resume capability
+
+---
+
+## Phase 4: API Endpoints ⏱️ 2 hours
+
+### 4.1 Batch Scraping Endpoint
+- [ ] Create `src/app/api/scrape/batch/route.ts`
+- [ ] POST /api/scrape/batch - Start new scraping job
+- [ ] GET /api/scrape/batch/[jobId] - Get job status
+- [ ] PUT /api/scrape/batch/[jobId] - Pause/resume job
+- [ ] DELETE /api/scrape/batch/[jobId] - Cancel job
+
+### 4.2 URL Management Endpoints
+- [ ] GET /api/scrape/urls - List URLs in queue
+- [ ] POST /api/scrape/urls/retry - Retry failed URLs
+- [ ] GET /api/scrape/urls/failed - Get failed URL report
+
+### 4.3 Statistics Endpoint
+- [ ] GET /api/scrape/stats - Overall scraping statistics
+- [ ] GET /api/scrape/stats/[jobId] - Job-specific stats
+- [ ] Include metrics: pages/hour, success rate, error types
+
+---
+
+## Phase 5: Monitoring Dashboard UI ⏱️ 2 hours
+
+### 5.1 Create Dashboard Page
+- [ ] Create `src/app/scraping-dashboard/page.tsx`
+- [ ] Add to sidebar navigation
+- [ ] Implement responsive layout
+
+### 5.2 Dashboard Components
+- [ ] Create `src/components/scraping-dashboard.tsx`
+- [ ] Job list with status indicators
+- [ ] Progress bars for active jobs
+- [ ] Real-time update via polling/websockets
+
+### 5.3 Dashboard Features
+- [ ] Start new scraping job button
+- [ ] Pause/resume/cancel controls
+- [ ] Error log viewer with filters
+- [ ] URL queue table with search
+- [ ] Export results to CSV
+
+### 5.4 Statistics Visualization
+- [ ] Scraping speed chart (pages/hour)
+- [ ] Success/failure pie chart
+- [ ] Time remaining estimate
+- [ ] Total pages in vector DB counter
+
+---
+
+## Phase 6: Scraper Optimizations ⏱️ 1.5 hours
+
+### 6.1 Enhance Core Scraper
+- [ ] Update `src/lib/scraper.ts`
+- [ ] Add timeout configuration (30 seconds)
+- [ ] Implement user-agent rotation
+- [ ] Handle redirects and 404s gracefully
+
+### 6.2 Content Processing
+- [ ] Improve content extraction for different page types
+- [ ] Better handling of dynamic content
+- [ ] Extract structured data (JSON-LD)
+- [ ] Optimize image and link extraction
+
+### 6.3 Vector Storage Optimization
+- [ ] Update `src/lib/vector-store.ts`
+- [ ] Batch embedding generation (10 chunks at once)
+- [ ] Implement change detection (compare lastmod)
+- [ ] Add bulk insert for better performance
+
+---
+
+## Phase 7: Testing & Quality Assurance ⏱️ 1.5 hours
+
+### 7.1 Unit Tests
+- [ ] Test sitemap parser with sample XML
+- [ ] Test language filtering logic
+- [ ] Test queue management operations
+- [ ] Test retry and error handling
+
+### 7.2 Integration Tests
+- [ ] Test full scraping pipeline with sample URLs
+- [ ] Test database operations under load
+- [ ] Test API endpoints with various scenarios
+- [ ] Test dashboard real-time updates
+
+### 7.3 Performance Testing
+- [ ] Load test with 100 concurrent URLs
+- [ ] Measure and optimize memory usage
+- [ ] Test database query performance
+- [ ] Verify rate limiting works correctly
+
+---
+
+## Phase 8: Deployment & Execution ⏱️ 1 hour
+
+### 8.1 Pre-Deployment Checklist
+- [ ] Review and optimize database indexes
+- [ ] Set up error monitoring (Sentry/LogRocket)
+- [ ] Configure environment variables
+- [ ] Create backup of current database
+
+### 8.2 Deployment Steps
+- [ ] Deploy updated code to production
+- [ ] Run database migrations
+- [ ] Verify all endpoints are working
+- [ ] Test dashboard accessibility
+
+### 8.3 Scraping Execution Plan
+- [ ] **Wave 1**: Core pages (/services, /solutions, /industries) - ~200 pages
+- [ ] **Wave 2**: Recent blog posts (last 6 months) - ~400 pages
+- [ ] **Wave 3**: Older blog posts (6 months - 2 years) - ~1000 pages
+- [ ] **Wave 4**: Resource pages and remaining content - ~360 pages
+
+### 8.4 Monitoring During Execution
+- [ ] Monitor server resources (CPU, memory, network)
+- [ ] Watch for rate limiting or blocking
+- [ ] Track error rates and types
+- [ ] Adjust worker count if needed
+
+---
+
+## Post-Implementation Tasks
+
+### Maintenance & Updates
+- [ ] Schedule daily incremental updates
+- [ ] Set up alerts for failed jobs
+- [ ] Document troubleshooting procedures
+- [ ] Create runbook for common issues
+
+### Performance Review
+- [ ] Analyze scraping statistics
+- [ ] Identify bottlenecks
+- [ ] Optimize slow queries
+- [ ] Review and improve chunking strategy
+
+### Documentation
+- [ ] Update README with scraping instructions
+- [ ] Document API endpoints
+- [ ] Create user guide for dashboard
+- [ ] Add architecture diagram
+
+---
+
+## Success Metrics
+
+- ✅ **Target**: 95% success rate for URL scraping
+- ✅ **Speed**: Minimum 150 pages/hour
+- ✅ **Quality**: All English pages correctly identified and scraped
+- ✅ **Reliability**: Automatic recovery from failures
+- ✅ **Monitoring**: Real-time visibility into scraping progress
+
+---
+
+## Notes
+
+- Always respect robots.txt and rate limits
+- Consider implementing caching for frequently accessed pages
+- Monitor OpenAI API usage for embedding generation costs
+- Keep backup of scraped data before major updates
+- Test on staging environment first if available

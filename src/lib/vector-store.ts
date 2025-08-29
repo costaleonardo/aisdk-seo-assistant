@@ -34,39 +34,89 @@ export async function storeDocument(
       `;
     }
     
-    // Prepare SEO data for insertion
-    const { seo_data } = scrapedContent;
+    // Prepare SEO data and content quality metrics for insertion
+    const { seo_data, content_quality } = scrapedContent;
     
-    // Insert new document with SEO data
-    const [document] = await sql`
-      INSERT INTO documents (
-        url, title, content,
-        meta_title, meta_description, meta_keywords, meta_robots, canonical_url,
-        og_title, og_description, og_image, og_type,
-        twitter_title, twitter_description, twitter_image, twitter_card,
-        schema_markup
-      )
-      VALUES (
-        ${scrapedContent.url}, 
-        ${scrapedContent.title}, 
-        ${scrapedContent.content},
-        ${seo_data.meta_title || null},
-        ${seo_data.meta_description || null},
-        ${seo_data.meta_keywords || null},
-        ${seo_data.meta_robots || null},
-        ${seo_data.canonical_url || null},
-        ${seo_data.og_title || null},
-        ${seo_data.og_description || null},
-        ${seo_data.og_image || null},
-        ${seo_data.og_type || null},
-        ${seo_data.twitter_title || null},
-        ${seo_data.twitter_description || null},
-        ${seo_data.twitter_image || null},
-        ${seo_data.twitter_card || null},
-        ${JSON.stringify(seo_data.schema_markup)}
-      )
-      RETURNING id, url, title
-    `;
+    // Try to insert with content quality metrics, fall back to basic insert if columns don't exist
+    let document;
+    try {
+      // First try with content quality metrics
+      [document] = await sql`
+        INSERT INTO documents (
+          url, title, content,
+          meta_title, meta_description, meta_keywords, meta_robots, canonical_url,
+          og_title, og_description, og_image, og_type,
+          twitter_title, twitter_description, twitter_image, twitter_card,
+          schema_markup,
+          word_count, sentence_count, paragraph_count, average_sentence_length, 
+          average_words_per_paragraph, readability_score, reading_time_minutes,
+          content_depth_score, topic_keywords, semantic_keywords, content_type
+        )
+        VALUES (
+          ${scrapedContent.url}, 
+          ${scrapedContent.title}, 
+          ${scrapedContent.content},
+          ${seo_data.meta_title || null},
+          ${seo_data.meta_description || null},
+          ${seo_data.meta_keywords || null},
+          ${seo_data.meta_robots || null},
+          ${seo_data.canonical_url || null},
+          ${seo_data.og_title || null},
+          ${seo_data.og_description || null},
+          ${seo_data.og_image || null},
+          ${seo_data.og_type || null},
+          ${seo_data.twitter_title || null},
+          ${seo_data.twitter_description || null},
+          ${seo_data.twitter_image || null},
+          ${seo_data.twitter_card || null},
+          ${JSON.stringify(seo_data.schema_markup)},
+          ${content_quality.word_count},
+          ${content_quality.sentence_count},
+          ${content_quality.paragraph_count},
+          ${content_quality.average_sentence_length},
+          ${content_quality.average_words_per_paragraph},
+          ${content_quality.readability_score},
+          ${content_quality.reading_time_minutes},
+          ${content_quality.content_depth_score},
+          ${content_quality.topic_keywords},
+          ${content_quality.semantic_keywords},
+          ${content_quality.content_type}
+        )
+        RETURNING id, url, title
+      `;
+    } catch (error) {
+      // Fall back to basic insert without content quality columns if they don't exist
+      console.log('Content quality columns not found, using basic insert:', error);
+      [document] = await sql`
+        INSERT INTO documents (
+          url, title, content,
+          meta_title, meta_description, meta_keywords, meta_robots, canonical_url,
+          og_title, og_description, og_image, og_type,
+          twitter_title, twitter_description, twitter_image, twitter_card,
+          schema_markup
+        )
+        VALUES (
+          ${scrapedContent.url}, 
+          ${scrapedContent.title}, 
+          ${scrapedContent.content},
+          ${seo_data.meta_title || null},
+          ${seo_data.meta_description || null},
+          ${seo_data.meta_keywords || null},
+          ${seo_data.meta_robots || null},
+          ${seo_data.canonical_url || null},
+          ${seo_data.og_title || null},
+          ${seo_data.og_description || null},
+          ${seo_data.og_image || null},
+          ${seo_data.og_type || null},
+          ${seo_data.twitter_title || null},
+          ${seo_data.twitter_description || null},
+          ${seo_data.twitter_image || null},
+          ${seo_data.twitter_card || null},
+          ${JSON.stringify(seo_data.schema_markup)}
+        )
+        RETURNING id, url, title
+      `;
+    }
     
     if (!document) {
       throw new Error('Failed to insert document');
