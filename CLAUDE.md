@@ -60,6 +60,14 @@ src/
 ├── components/            # React components (✅ IMPLEMENTED)
 │   ├── scrape-form.tsx        # URL input form with validation, loading states, error handling
 │   ├── chat-interface.tsx     # Chat UI with streaming responses and message styling
+│   ├── seo/                   # Advanced SEO UI components
+│   │   ├── seo-dashboard.tsx      # Main SEO dashboard with tabbed interface
+│   │   ├── seo-score-card.tsx     # SEO score display with visual indicators
+│   │   ├── heading-hierarchy.tsx  # H1-H6 structure analysis component
+│   │   ├── meta-tags-table.tsx    # Meta tags display and validation
+│   │   ├── link-analysis.tsx      # Internal/external link analysis
+│   │   ├── image-optimization.tsx # Image SEO analysis component
+│   │   └── recommendations-list.tsx # Actionable SEO recommendations display
 │   └── ui/                    # Reusable base components
 │       ├── button.tsx         # Button with variants (primary, secondary, outline, ghost)
 │       ├── input.tsx          # Styled input with error state support  
@@ -204,6 +212,8 @@ Key dependencies already installed:
 - `zod`: Runtime type validation
 - `next`, `react`, `react-dom`: Core framework
 - `tailwindcss`: Styling framework
+- `lucide-react`: Icon library for UI components
+- `recharts`: Chart library for SEO data visualization
 
 ## Critical Implementation Notes
 
@@ -276,7 +286,6 @@ All core functions are fully implemented and ready to use:
 - Responsive design is required (mobile + desktop)
 
 ### AI SDK Implementation Notes
-- Chat interface uses custom fetch implementation instead of `useChat` hook for better control
 - Streaming responses handled with AI SDK's built-in `streamText()` and `toTextStreamResponse()`  
 - **Phase 3 Complete**: AI tool calling integrated with 6 SEO analysis tools for expert guidance
 - Tools use proper `inputSchema` with Zod validation and return comprehensive analysis data
@@ -286,3 +295,8 @@ All core functions are fully implemented and ready to use:
 - All vector operations use cosine similarity (`<=>` operator)
 - Embeddings are stored as VECTOR(1536) for OpenAI ada-002 model
 - HNSW indexing is configured for performance
+
+### Rules
+
+- If there are 3rd party solutions to a task, choose that over custom logic solutions.
+- DO NOT USE custom streaming implementation
