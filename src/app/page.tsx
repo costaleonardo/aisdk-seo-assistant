@@ -104,7 +104,7 @@ export default function Home() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
         <Card variant="elevated">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -134,64 +134,12 @@ export default function Home() {
             <ChatInterface />
           </CardContent>
         </Card>
-        
-        <Card variant="elevated">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BarChart3 className="w-6 h-6 mr-2 text-purple-600" />
-              3. SEO Dashboard
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Get comprehensive SEO analysis with visual dashboards, scores, and actionable recommendations.
-            </p>
-            <div className="space-y-3">
-              <input
-                type="url"
-                placeholder="Enter URL for SEO analysis..."
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const target = e.target as HTMLInputElement;
-                    if (target.value.trim()) {
-                      handleSEOAnalysis(target.value.trim());
-                    }
-                  }
-                }}
-                disabled={isAnalyzing}
-              />
-              <Button
-                onClick={() => {
-                  const input = document.querySelector('input[type="url"]') as HTMLInputElement;
-                  if (input?.value.trim()) {
-                    handleSEOAnalysis(input.value.trim());
-                  }
-                }}
-                disabled={isAnalyzing}
-                className="w-full"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Globe className="w-4 h-4 mr-2" />
-                    Analyze Website
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="mt-12 text-center">
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">How it works</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div className="flex items-center justify-center">
               <div className="bg-blue-100 rounded-full p-2 mr-2">
                 <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -213,12 +161,6 @@ export default function Home() {
                 <MessageCircle className="w-4 h-4 text-green-600" />
               </div>
               <span>AI-powered SEO insights</span>
-            </div>
-            <div className="flex items-center justify-center">
-              <div className="bg-purple-100 rounded-full p-2 mr-2">
-                <BarChart3 className="w-4 h-4 text-purple-600" />
-              </div>
-              <span>Visual SEO dashboards</span>
             </div>
           </div>
         </div>
