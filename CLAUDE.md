@@ -130,11 +130,12 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 ## Key Implementation Patterns
 
 ### Chat Implementation (✅ IMPLEMENTED)
-- Uses Vercel AI SDK's `streamText()` with GPT-4o model
-- Basic chat functionality without RAG integration (simplified for MVP)
-- Custom fetch-based streaming in ChatInterface component
-- System prompt configured for general AI assistant behavior
-- Comprehensive error handling and proper request validation
+- Uses Vercel AI SDK's `streamText()` with GPT-4o model and **multi-step tool calling**
+- **RAG integration**: Full vector search capabilities through `searchContent` tool
+- **Multi-step processing**: `stepCountIs(5)` enables AI to call multiple tools in sequence
+- Custom streaming implementation with tool call visualization support
+- **Expert SEO system prompt**: Specialized for Concentrix website analysis
+- `onStepFinish` callback for debugging tool execution steps
 
 ### Web Scraping Strategy (✅ IMPLEMENTED)
 - Advanced Cheerio-based HTML parsing with robust error handling
@@ -145,7 +146,11 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 
 ### API Design (✅ IMPLEMENTED)
 - **POST /api/scrape**: Accepts `{url}`, returns `{document_id, chunks_created, success, title}` with comprehensive error handling
-- **POST /api/chat**: Uses AI SDK streaming with GPT-4o model, accepts `{messages}` array, returns streaming text responses
+- **POST /api/chat**: **Multi-step AI tool calling** with GPT-4o model
+  - Uses `stepCountIs(5)` for advanced tool orchestration
+  - Includes 3 specialized tools: `searchContent`, `analyzePage`, `listPages`
+  - Streaming responses with `toTextStreamResponse()`
+  - Expert SEO specialist system prompt for Concentrix
 - **POST /api/seo/analyze**: Comprehensive SEO analysis with scoring and recommendations
 - **POST /api/seo/compare**: Compare SEO performance between two URLs
 - **POST /api/seo/keywords**: Extract and analyze keywords from content
@@ -154,7 +159,11 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 ### UI Component Architecture (✅ IMPLEMENTED)
 - **Landing Page**: Professional card-based layout with integrated components, responsive design
 - **ScrapeForm**: URL input validation, loading states with animations, success/error feedback, form reset
-- **ChatInterface**: Custom fetch-based streaming, message styling, auto-scroll, loading indicators
+- **ChatInterface**: 
+  - Custom streaming implementation with fetch-based approach
+  - Tool call visualization support with `ToolCall` interface
+  - Message styling, auto-scroll, loading indicators
+  - Prepared for displaying intermediate tool execution steps
 - **UI Library**: Reusable components (Button with variants, Input with error states, Card containers)
 - **TypeScript**: Full type safety with custom interfaces, 0 compilation errors
 
@@ -184,10 +193,12 @@ Based on actual codebase analysis - **Project is ~99% Complete**:
 - ✅ **Landing Page**: Complete (professional card-based design with integrated components)
 - ✅ **Database Setup**: Complete (schema created, pgvector enabled, indexes configured)
 - ✅ **Core Library Functions**: Complete (scraper, chunking, vector-store, db with comprehensive types)
-- ✅ **API Endpoints**: Complete (scrape, chat with AI tool calling, and comprehensive SEO analysis routes)
-- ✅ **UI Components**: Complete (ScrapeForm, ChatInterface, and reusable UI library)
+- ✅ **API Endpoints**: Complete (scrape, chat with multi-step tool calling, and comprehensive SEO analysis routes)
+- ✅ **UI Components**: Complete (ScrapeForm, ChatInterface with tool visualization, and reusable UI library)
 - ✅ **Type Definitions**: Complete (comprehensive TypeScript throughout, 0 compilation errors)
-- ✅ **Phase 3 AI Enhancement**: Complete (AI tool calling with 6 SEO analysis tools, expert system prompt)
+- ✅ **Multi-Step Tool Calling**: Complete (`stepCountIs(5)`, 3 core tools, RAG integration)
+- ✅ **RAG Integration**: Complete (vector search through Concentrix database)
+- ✅ **Expert AI Assistant**: Complete (specialized SEO system prompt with tool orchestration)
 
 **Remaining Work**: Testing, deployment configuration, documentation updates
 
@@ -217,23 +228,57 @@ Key dependencies already installed:
 
 ## Critical Implementation Notes
 
-1. **Vector Search**: Use cosine similarity (`<=>` operator) with pgvector - **IMPLEMENTED**
-2. **Embedding Model**: OpenAI `text-embedding-ada-002` (1536 dimensions) - **IMPLEMENTED** 
-3. **Chunking Strategy**: Advanced sentence-based splitting with overlap support - **IMPLEMENTED**
-4. **Error Handling**: Comprehensive error handling implemented in all core functions
-5. **Streaming**: AI SDK handles streaming for chat responses
-6. **Database Connection**: Neon serverless client fully configured - **IMPLEMENTED**
-7. **Text Processing**: Smart content prioritization and multiple extraction strategies
+1. **Multi-step Tool Calls**: Uses `stepCountIs(5)` for advanced AI orchestration - **IMPLEMENTED**
+2. **Vector Search**: Use cosine similarity (`<=>` operator) with pgvector - **IMPLEMENTED**
+3. **Embedding Model**: OpenAI `text-embedding-ada-002` (1536 dimensions) - **IMPLEMENTED** 
+4. **Chunking Strategy**: Advanced sentence-based splitting with overlap support - **IMPLEMENTED**
+5. **Error Handling**: Comprehensive error handling implemented in all core functions
+6. **Streaming**: AI SDK handles streaming for chat responses with tool execution logging
+7. **Database Connection**: Neon serverless client fully configured - **IMPLEMENTED**
+8. **Text Processing**: Smart content prioritization and multiple extraction strategies
+
+## Multi-Step Tool Calling Architecture
+
+The chat system implements sophisticated AI tool orchestration:
+
+```typescript
+// In /api/chat/route.ts
+const result = streamText({
+  model: openai('gpt-4o'),
+  stopWhen: stepCountIs(5), // Enable multi-step tool calls
+  onStepFinish: ({ toolCalls, toolResults, stepType }) => {
+    // Debug logging for tool execution steps
+  },
+  tools: {
+    searchContent: tool({ /* vector search */ }),
+    analyzePage: tool({ /* SEO analysis */ }),
+    listPages: tool({ /* content discovery */ })
+  }
+});
+```
+
+**Tool Execution Flow:**
+1. User asks question (e.g., "What is our homepage meta description?")
+2. AI calls `searchContent` tool to find relevant pages
+3. AI calls `analyzePage` tool if detailed SEO analysis needed
+4. AI synthesizes results into expert recommendation
+5. Response streams to user with tool execution context
 
 ## Next Steps
 
-All core development and **Phase 3 AI-powered chat enhancement** are complete. Remaining priorities are:
-1. **Testing**: Manual testing of SEO tool calling and expert chat functionality
+All core development and **Multi-Step AI Tool Calling** are complete. Remaining priorities are:
+1. **Testing**: Manual testing of multi-step tool workflows and RAG integration
 2. **Deployment**: Configure Vercel deployment with environment variables  
 3. **Documentation**: Update README with proper project description and setup instructions
 4. **Optional Phase 4**: Enhanced UI components for SEO dashboards and visualizations
 
-The system now provides **expert-level SEO analysis through AI chat** with 6 specialized tools. Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for progress tracking.
+The system now provides **expert-level SEO analysis through advanced AI chat** with multi-step tool orchestration:
+- **3 Core Tools**: `searchContent` (vector search), `analyzePage` (SEO analysis), `listPages` (discovery)
+- **Advanced Workflows**: `stepCountIs(5)` enables complex multi-step AI interactions
+- **RAG Integration**: Full vector search through Concentrix website database
+- **Expert Analysis**: Specialized system prompt for SEO recommendations
+
+Reference `Specs/SPECS.md` for detailed implementation examples and `Specs/CHECKLIST.md` for progress tracking.
 
 ## Core Library Functions Status
 
@@ -286,10 +331,12 @@ All core functions are fully implemented and ready to use:
 - Responsive design is required (mobile + desktop)
 
 ### AI SDK Implementation Notes
-- Streaming responses handled with AI SDK's built-in `streamText()` and `toTextStreamResponse()`  
-- **Phase 3 Complete**: AI tool calling integrated with 6 SEO analysis tools for expert guidance
-- Tools use proper `inputSchema` with Zod validation and return comprehensive analysis data
-- SEO specialist system prompt provides expert knowledge and actionable recommendations
+- **Multi-step tool calling**: Uses `stepCountIs(5)` for advanced tool orchestration
+- **3 Core Tools**: `searchContent` (vector search), `analyzePage` (SEO analysis), `listPages` (content discovery)
+- Streaming responses with `streamText()` and `toTextStreamResponse()`
+- Tools use Zod validation with `inputSchema` for type safety
+- `onStepFinish` callback provides step-by-step execution logging
+- Expert SEO system prompt specialized for Concentrix website analysis
 
 ### Database Operations
 - All vector operations use cosine similarity (`<=>` operator)
@@ -299,4 +346,7 @@ All core functions are fully implemented and ready to use:
 ### Rules
 
 - If there are 3rd party solutions to a task, choose that over custom logic solutions.
-- DO NOT USE custom streaming implementation
+- **Multi-step tool calls**: Always use `stepCountIs()` when implementing AI tool calling
+- **Vector search**: Use cosine similarity with HNSW indexing for performance
+- **Tool validation**: All tools must use Zod schemas with proper type validation
+- **Streaming**: Use AI SDK's `toTextStreamResponse()` for consistent streaming behavior
