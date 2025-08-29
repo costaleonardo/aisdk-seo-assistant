@@ -17,9 +17,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
     
     const sizeClasses = {
-      sm: 'h-8 px-3 text-sm rounded-md',
-      md: 'h-10 px-4 text-sm rounded-lg',
-      lg: 'h-12 px-6 text-base rounded-lg'
+      sm: 'h-8 px-3 text-caption font-medium rounded-md',
+      md: 'h-10 px-4 text-caption font-medium rounded-lg',
+      lg: 'h-12 px-6 text-body font-medium rounded-lg'
     };
     
     const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
