@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { streamText, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
-import { vectorSearch, getDocumentById, getAllDocuments } from '@/lib/vector-store';
+import { vectorSearch, getDocumentById, getAllDocuments, getHomepageDocument } from '@/lib/vector-store';
 import { performSEOAnalysis } from '@/lib/seo-analyzer';
 import { calculateSEOScore, getScoreInterpretation } from '@/lib/seo-scoring';
 
@@ -43,6 +43,7 @@ Content Quality Features Available:
 - Reading time estimation and target audience identification
 
 Available Tools:
+- getHomepage: Get the Concentrix homepage specifically (use when users ask about "homepage", "home page", "main page")
 - searchContent: Vector search through Concentrix content
 - analyzePage: Comprehensive SEO + content quality analysis by document ID
 - listPages: Browse available pages in the database
@@ -53,11 +54,14 @@ Available Tools:
 IMPORTANT: All Concentrix website content has been pre-scraped and stored in your database. You don't need URLs - just search for relevant content based on the user's query.
 
 When users ask about:
-- "our homepage" → Search for homepage content
+- "our homepage" or "home page" → ALWAYS use getHomepage tool first (NEVER use searchContent for homepage queries)
+- "homepage meta description" → Use getHomepage, then analyzePage with the returned document ID
 - "our services" → Search for services-related content
 - "content quality" → Use content quality analysis tools
 - "readability" → Use readability analysis tools
 - SEO analysis → Search for relevant pages and analyze their comprehensive data
+
+CRITICAL: NEVER use searchContent for homepage queries. The homepage is always at https://www.concentrix.com/ and must be retrieved using getHomepage tool only.
 
 Guidelines:
 - Use search tools to find relevant Concentrix content based on queries
@@ -77,6 +81,58 @@ Guidelines:
         });
       },
       tools: {
+        getHomepage: tool({
+          description: 'Get the Concentrix homepage document - use this when users ask about the homepage, home page, main page, or landing page',
+          inputSchema: z.object({}),
+          execute: async () => {
+            console.log('getHomepage called');
+            try {
+              const homepage = await getHomepageDocument();
+              if (!homepage) {
+                console.log('Homepage not found');
+                return { success: false, error: 'Homepage not found in database' };
+              }
+              
+              console.log('Found homepage:', homepage.url, homepage.title);
+              
+              // VALIDATION: Ensure this is actually the correct homepage
+              if (homepage.url !== 'https://www.concentrix.com/') {
+                console.warn('⚠️ WARNING: Detected homepage URL is not https://www.concentrix.com/');
+                console.warn('   Detected URL:', homepage.url);
+              }
+              
+              // VALIDATION: Check meta description
+              const expectedMetaStart = "Concentrix is a global technology and services leader";
+              if (homepage.meta_description && !homepage.meta_description.startsWith(expectedMetaStart)) {
+                console.warn('⚠️ WARNING: Meta description does not match expected homepage meta');
+                console.warn('   Expected to start with:', expectedMetaStart);
+                console.warn('   Actual:', homepage.meta_description);
+              }
+              
+              return {
+                success: true,
+                homepage: {
+                  id: homepage.id,
+                  url: homepage.url,
+                  title: homepage.title,
+                  meta_description: homepage.meta_description,
+                  created_at: homepage.created_at
+                },
+                validation: {
+                  isCorrectUrl: homepage.url === 'https://www.concentrix.com/',
+                  hasCorrectMeta: homepage.meta_description?.startsWith(expectedMetaStart) || false
+                },
+                message: `Found the Concentrix homepage: ${homepage.title} (${homepage.url}). Meta description: "${homepage.meta_description}". Document ID: ${homepage.id}`
+              };
+            } catch (error) {
+              console.error('getHomepage error:', error);
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to retrieve homepage'
+              };
+            }
+          }
+        }),
         searchContent: tool({
           description: 'Search through Concentrix website content stored in the vector database',
           inputSchema: z.object({
@@ -86,6 +142,52 @@ Guidelines:
           execute: async ({ query, limit }) => {
             console.log('searchContent called with:', { query, limit });
             try {
+              // Check if this is a homepage-related query
+              const isHomepageQuery = /\b(homepage|home\s*page|main\s*page|landing\s*page)\b/i.test(query);
+              
+              if (isHomepageQuery) {
+                console.log('Homepage query detected, checking for homepage first');
+                const homepage = await getHomepageDocument();
+                if (homepage) {
+                  // Return homepage as first result, then add vector search results
+                  const vectorResults = await vectorSearch(query, Math.max(1, limit - 1));
+                  const enrichedVectorResults = await Promise.all(
+                    vectorResults
+                      .filter(result => result.document_id !== homepage.id) // Avoid duplicates
+                      .map(async (result) => {
+                        const doc = await getDocumentById(result.document_id);
+                        return {
+                          ...result,
+                          url: doc?.url,
+                          title: doc?.title,
+                          meta_description: doc?.meta_description
+                        };
+                      })
+                  );
+                  
+                  // Create homepage result entry
+                  const homepageResult = {
+                    document_id: homepage.id,
+                    content: homepage.content?.substring(0, 500) + '...' || 'Homepage content',
+                    similarity: 1.0, // Highest priority
+                    chunk_id: 0,
+                    url: homepage.url,
+                    title: homepage.title,
+                    meta_description: homepage.meta_description
+                  };
+                  
+                  const allResults = [homepageResult, ...enrichedVectorResults];
+                  console.log('searchContent results (homepage first):', allResults.length);
+                  return {
+                    success: true,
+                    results: allResults,
+                    count: allResults.length,
+                    note: 'Homepage prioritized for this query'
+                  };
+                }
+              }
+              
+              // Regular vector search
               const results = await vectorSearch(query, limit);
               const enrichedResults = await Promise.all(
                 results.map(async (result) => {
