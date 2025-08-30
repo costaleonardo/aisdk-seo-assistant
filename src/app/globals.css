@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Ensure Montserrat font loads properly */
+.font-montserrat {
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+}
+
 /* Color Variables */
 :root {
   /* Primary Colors */
@@ -27,73 +32,4 @@
   --color-text-gray: #2A2B2C;
 }
 
-/* Typography Styles */
-.heading-1 {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 700; /* Bold */
-  font-size: 48px;
-  line-height: 50px;
-}
-
-.heading-2 {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 600; /* SemiBold */
-  font-size: 36px;
-  line-height: 40px;
-}
-
-.heading-3 {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 600; /* SemiBold */
-  font-size: 24px;
-  line-height: 28px;
-}
-
-.heading-4 {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 600; /* SemiBold */
-  font-size: 20px;
-  line-height: 26px;
-}
-
-.heading-5 {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 600; /* SemiBold */
-  font-size: 18px;
-  line-height: 22px;
-}
-
-.body-medium {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 500; /* Medium */
-  font-size: 16px;
-  line-height: 26px;
-}
-
-.body-regular {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 400; /* Regular */
-  font-size: 16px;
-  line-height: 26px;
-}
-
-.body-bold {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 700; /* Bold */
-  font-size: 16px;
-  line-height: 26px;
-}
-
-.caption-medium {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 500; /* Medium */
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.caption-regular {
-  font-family: var(--font-montserrat), sans-serif;
-  font-weight: 400; /* Regular */
-  font-size: 12px;
-  line-height: 16px;
-}
+/* Base Typography - handled by Tailwind configuration */
