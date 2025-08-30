@@ -425,6 +425,69 @@ export async function getDocumentImages(documentId: number): Promise<Image[]> {
   }
 }
 
+// Function to detect and retrieve homepage document
+export async function getHomepageDocument(): Promise<Document | null> {
+  try {
+    // Try exact homepage URL first: https://www.concentrix.com/
+    const exactResult = await sql`
+      SELECT * FROM documents 
+      WHERE url = 'https://www.concentrix.com/' 
+      ORDER BY created_at DESC LIMIT 1
+    `;
+    
+    if (exactResult.length > 0) {
+      console.log('✅ Found homepage: https://www.concentrix.com/');
+      return exactResult[0] as Document;
+    }
+
+    // Fallback patterns if exact URL not found
+    const fallbackPatterns = [
+      'https://concentrix.com/',
+      'http://www.concentrix.com/',
+      'http://concentrix.com/'
+    ];
+
+    for (const pattern of fallbackPatterns) {
+      const result = await sql`SELECT * FROM documents WHERE url = ${pattern} ORDER BY created_at DESC LIMIT 1`;
+      if (result.length > 0) {
+        console.log('✅ Found homepage with fallback URL:', result[0].url);
+        return result[0] as Document;
+      }
+    }
+
+    // Try regex pattern for domain root
+    const regexResult = await sql`
+      SELECT * FROM documents 
+      WHERE url ~ '^https?://(www\.)?concentrix\.com/?$' 
+      ORDER BY created_at DESC LIMIT 1
+    `;
+    
+    if (regexResult.length > 0) {
+      console.log('✅ Found homepage with regex pattern:', regexResult[0].url);
+      return regexResult[0] as Document;
+    }
+
+    // Find the shortest Concentrix URL (most likely to be homepage)
+    const shortestUrlResult = await sql`
+      SELECT * FROM documents 
+      WHERE url LIKE '%concentrix.com%' 
+      ORDER BY LENGTH(url), created_at DESC 
+      LIMIT 1
+    `;
+    
+    if (shortestUrlResult.length > 0) {
+      console.log('✅ Using shortest URL as homepage:', shortestUrlResult[0].url);
+      return shortestUrlResult[0] as Document;
+    }
+
+    console.log('❌ No homepage found');
+    return null;
+  } catch (error) {
+    console.error('❌ Error finding homepage:', error);
+    return null;
+  }
+}
+
 // Helper function to test vector search functionality
 export async function testVectorStore(): Promise<void> {
   try {
