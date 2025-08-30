@@ -1,11 +1,15 @@
 import { neon } from '@neondatabase/serverless';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
+// Initialize Neon database client - handle missing DATABASE_URL gracefully
+// This allows the build to succeed even without the environment variable
+export const sql = process.env.DATABASE_URL 
+  ? neon(process.env.DATABASE_URL)
+  : null as any; // Will be set via environment variables in Vercel
 
-// Initialize Neon database client
-export const sql = neon(process.env.DATABASE_URL);
+// Helper function to check if database is configured
+export const isDatabaseConfigured = () => {
+  return !!process.env.DATABASE_URL;
+};
 
 // Type definitions for database tables
 export interface Document {

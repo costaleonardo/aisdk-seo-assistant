@@ -8,6 +8,7 @@ import { BarChart3, Search, TrendingUp, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { SEOAnalysis } from '@/lib/seo-analyzer';
 import { SEOScore } from '@/lib/seo-scoring';
+import Link from 'next/link';
 import { Heading, LinkData, ImageData } from '@/lib/scraper';
 
 interface DashboardData {
@@ -258,13 +259,13 @@ export default function SEOAnalysisPage() {
                 step-by-step guidance on implementing improvements.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <a
+                <Link
                   href="/"
                   className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   <Search className="w-5 h-5 mr-2" />
                   Chat with AI Assistant
-                </a>
+                </Link>
                 <a
                   href="/scraper"
                   className="inline-flex items-center px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"

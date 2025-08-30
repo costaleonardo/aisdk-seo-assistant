@@ -1,0 +1,27 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/chat/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/scrape/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/seo/analyze/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/seo/compare/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/seo/keywords/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/seo/suggestions/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}

@@ -3,6 +3,7 @@
 import ScrapeForm from '@/components/scrape-form';
 import { Globe, Database, Search, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function ScraperPage() {
   return (
@@ -54,7 +55,7 @@ export default function ScraperPage() {
               </div>
               <h3 className="font-semibold text-gray-800 mb-2">2. Content Processing</h3>
               <p className="text-sm text-gray-600">
-                Break content into chunks and generate vector embeddings using OpenAI's advanced models
+                Break content into chunks and generate vector embeddings using OpenAI&apos;s advanced models
               </p>
             </div>
             
@@ -113,17 +114,17 @@ export default function ScraperPage() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">Ready to Analyze?</h3>
                 <p className="text-gray-600 mb-4">
-                  Once you've added websites to your knowledge base, head over to the Chat interface to start getting 
+                  Once you&apos;ve added websites to your knowledge base, head over to the Chat interface to start getting 
                   AI-powered SEO insights and recommendations.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <a
+                  <Link
                     href="/"
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <Search className="w-4 h-4 mr-2" />
                     Start Chatting
-                  </a>
+                  </Link>
                   <a
                     href="/seo-analysis"
                     className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"

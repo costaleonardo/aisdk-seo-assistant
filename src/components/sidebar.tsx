@@ -60,6 +60,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center space-x-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="//www.concentrix.com/wp-content/uploads/2024/02/concentrix_logo.webp" alt="" />
           </div>
           
