@@ -16,6 +16,8 @@ npm run lint        # ESLint linting
 npm run type-check  # TypeScript type checking
 ```
 
+**Important**: Always run both `npm run lint` and `npm run type-check` before committing changes to ensure code quality.
+
 ## Architecture Overview
 
 This is a **Next.js 14 application** using the Vercel AI SDK that:
@@ -41,20 +43,33 @@ DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
 ## Database Schema
 
 The system uses PostgreSQL with pgvector extension:
-- `documents` table: Stores scraped content with SEO metadata
+
+**Core Tables**:
+- `documents` table: Stores scraped content with SEO metadata and content quality metrics
 - `document_chunks` table: Stores text chunks with vector embeddings (VECTOR(1536))
-- `meta_tags`, `headings`, `links`, `images` tables: Detailed SEO analysis data
-- HNSW indexes for efficient cosine similarity search
-- Run `database/migration-seo-schema.sql` to add SEO functionality
+
+**SEO Analysis Tables**:
+- `meta_tags` table: All meta tags from scraped pages
+- `headings` table: H1-H6 heading hierarchy with order
+- `links` table: Internal/external links with anchor text
+- `images` table: Image metadata with alt text and dimensions
+
+**Indexes**: HNSW indexes for efficient cosine similarity search
+
+**Setup**: 
+1. Run `database/schema.sql` for base schema
+2. Run `database/migration-seo-schema.sql` to add SEO functionality  
+3. Run `database/migration-content-quality-metrics.sql` for content analysis
 
 ## Key Implementation Patterns
 
-### Multi-Step Tool Calling (Phase 3)
+### Multi-Step AI Tool Calling
 The chat system implements sophisticated AI tool orchestration:
 - Uses `stepCountIs(5)` to enable multi-step tool calls
-- GPT-4o model with expert SEO system prompt
-- Tools: `searchContent` (vector search), `analyzePage` (SEO analysis), `listPages` (discovery)
+- GPT-4o model with expert SEO system prompt tailored for Concentrix
+- **Tools Available**: `getHomepage`, `searchContent` (vector search), `analyzePage` (SEO analysis), `listPages` (discovery), `analyzeContentQuality`, `checkReadability`, `analyzeContentDepth`
 - `onStepFinish` callback for debugging tool execution
+- **Critical**: Homepage queries must use `getHomepage` tool, not `searchContent`
 
 ### Web Scraping Strategy
 - Cheerio-based HTML parsing with robust error handling
@@ -63,12 +78,12 @@ The chat system implements sophisticated AI tool orchestration:
 - Comprehensive content cleaning and normalization
 
 ### API Endpoints
-- **POST /api/scrape**: Scrapes URL and stores embeddings
-- **POST /api/chat**: Multi-step AI tool calling with streaming responses
-- **POST /api/seo/analyze**: Comprehensive SEO analysis
-- **POST /api/seo/compare**: Compare SEO between two URLs
-- **POST /api/seo/keywords**: Extract and analyze keywords
-- **POST /api/seo/suggestions**: Generate actionable recommendations
+- **POST /api/scrape**: Scrapes URL and stores embeddings with SEO metadata
+- **POST /api/chat**: Multi-step AI tool calling with streaming responses  
+- **POST /api/seo/analyze**: Comprehensive SEO analysis with scoring
+- **POST /api/seo/compare**: Compare SEO performance between two URLs
+- **POST /api/seo/keywords**: Extract and analyze keyword density
+- **POST /api/seo/suggestions**: Generate prioritized actionable recommendations
 
 ## Project Structure
 
@@ -109,10 +124,11 @@ src/
 - Responsive design required (mobile + desktop)
 
 ### AI SDK Implementation
-- Multi-step tool calling with `stepCountIs(5)`
+- Multi-step tool calling with `stepCountIs(5)` 
 - Streaming responses with `streamText()` and `toTextStreamResponse()`
 - Tools use Zod validation for type safety
 - Expert SEO system prompt for Concentrix website analysis
+- **Important**: All tools return structured data with success/error handling
 
 ### Database Operations
 - Vector operations use cosine similarity (`<=>` operator)
@@ -130,4 +146,39 @@ src/
 - ✅ SEO analysis and scoring
 - ✅ Sidebar navigation and page routing
 
-**Remaining**: Testing, deployment configuration, documentation updates
+**Remaining**: Testing, deployment configuration
+
+## Content Quality Analysis Features
+
+The system includes advanced content analysis capabilities beyond basic SEO:
+
+**Metrics Tracked**:
+- Word count, sentence count, paragraph count
+- Average sentence length and words per paragraph  
+- Flesch Reading Ease scores (0-100, higher = easier to read)
+- Content depth scores (0-100, based on comprehensiveness)
+- Topic keyword extraction and semantic keyword identification
+- Content type classification (informational, commercial, navigational, mixed)
+- Reading time estimation and target audience identification
+
+**Analysis Functions** (`src/lib/seo-tools.ts`):
+- `analyzeContentQuality()`: Complete content metrics analysis
+- `checkReadability()`: Readability and target audience analysis
+- `analyzeContentDepth()`: Topic coverage and semantic richness
+- `compareContentQuality()`: Content quality comparison between URLs
+
+## Database Migration Sequence
+
+When setting up the database, run migrations in this order:
+1. `database/schema.sql` - Base schema with documents and document_chunks
+2. `database/migration-seo-schema.sql` - SEO metadata tables (meta_tags, headings, links, images)  
+3. `database/migration-content-quality-metrics.sql` - Content analysis metrics columns
+
+## AI Chat System Architecture
+
+The chat system at `/api/chat/route.ts` implements a sophisticated tool calling pattern:
+- **Model**: GPT-4o with specialized SEO prompt for Concentrix
+- **Tools**: 7 specialized tools for different SEO analysis tasks
+- **Homepage Handling**: Special logic to prioritize homepage in search results
+- **Streaming**: Real-time response streaming with step-by-step tool execution
+- **Error Handling**: Comprehensive error handling for each tool

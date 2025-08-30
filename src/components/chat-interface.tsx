@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle, AlertTriangle, ExternalLink, Hash, Tags, Link, Image as ImageIcon, BarChart } from 'lucide-react';
+import { CheckCircle, Hash } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface ToolCall {
   id: string;
@@ -105,7 +106,7 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col" style={{ backgroundColor: '#003D5B' }}>
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -116,17 +117,17 @@ export default function ChatInterface() {
           )}
           
           {!messages || messages.length === 0 ? (
-            <div className="flex items-center justify-center h-96 text-gray-500">
-              <div className="text-center max-w-md">
-                <svg className="mx-auto h-16 w-16 text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center justify-center h-96">
+              <div className="text-center max-w-md p-8" style={{ backgroundColor: '#003D5B' }}>
+                <svg className="mx-auto h-16 w-16 text-white/70 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <h2 className="text-heading-4 font-semibold text-gray-800 mb-2">Concentrix SEO Assistant</h2>
-                <p className="text-body font-regular text-gray-600">
+                <h2 className="text-heading-4 font-semibold text-white mb-2">Concentrix SEO Assistant - Team Portal</h2>
+                <p className="text-body font-regular text-white/80">
                   Welcome, team member! I have access to all Concentrix website content and can help you optimize 
                   our SEO performance. Ask me about our pages, content analysis, or SEO improvements.
                 </p>
-                <div className="mt-4 space-y-2 text-caption font-regular text-gray-500">
+                <div className="mt-4 space-y-2 text-caption font-regular text-white/60">
                   <p>&quot;What is our homepage meta description?&quot;</p>
                   <p>&quot;Analyze the SEO score for our services pages&quot;</p>
                   <p>&quot;Find keyword opportunities for Concentrix content&quot;</p>
@@ -140,20 +141,20 @@ export default function ChatInterface() {
                   <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex max-w-4xl w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`px-6 py-4 rounded-2xl shadow-sm ${
+                        className={`px-6 py-4 rounded-2xl shadow-lg ${
                           message.role === 'user'
-                            ? 'bg-blue-600 text-white ml-12'
-                            : 'bg-gray-50 text-gray-900 mr-12 border border-gray-200'
+                            ? 'bg-white text-gray-900 ml-12'
+                            : 'bg-white text-gray-900 mr-12 border border-gray-200'
                         }`}
                       >
                         {message.role === 'assistant' && (
                           <div className="flex items-center mb-3">
-                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center mr-3">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: '#003D5B' }}>
                               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm2 2a1 1 0 000 2h8a1 1 0 100-2H5z" clipRule="evenodd" />
                               </svg>
                             </div>
-                            <span className="text-caption font-medium text-gray-700">SEO Assistant</span>
+                            <span className="text-caption font-medium text-gray-800">SEO Assistant</span>
                           </div>
                         )}
                         
@@ -193,8 +194,25 @@ export default function ChatInterface() {
                           </div>
                         )}
                         
-                        <div className="whitespace-pre-wrap text-body font-regular">
-                          {message.content}
+                        <div className="prose prose-sm max-w-none text-gray-900">
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => <h1 className="text-2xl font-bold text-gray-900 mb-4 mt-6">{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-5">{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-lg font-medium text-gray-900 mb-2 mt-4">{children}</h3>,
+                              p: ({ children }) => <p className="text-body font-regular text-gray-900 mb-3 leading-relaxed">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-900">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-900">{children}</ol>,
+                              li: ({ children }) => <li className="text-body font-regular text-gray-900">{children}</li>,
+                              strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                              em: ({ children }) => <em className="italic text-gray-900">{children}</em>,
+                              code: ({ children }) => <code className="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
+                              blockquote: ({ children }) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 mb-3">{children}</blockquote>,
+                              a: ({ href, children }) => <a href={href} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">{children}</a>
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     </div>
@@ -207,19 +225,19 @@ export default function ChatInterface() {
           {isLoading && (
             <div className="mt-6">
               <div className="flex justify-start">
-                <div className="bg-gray-50 text-gray-900 mr-12 border border-gray-200 px-6 py-4 rounded-2xl shadow-sm">
+                <div className="bg-white text-gray-900 mr-12 border border-gray-200 px-6 py-4 rounded-2xl shadow-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#003D5B' }}>
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm2 2a1 1 0 000 2h8a1 1 0 100-2H5z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                     </div>
-                    <span className="text-caption font-regular text-gray-600">Analyzing...</span>
+                    <span className="text-caption font-regular text-gray-700">Analyzing...</span>
                   </div>
                 </div>
               </div>
@@ -231,7 +249,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4">
+      <div className="border-t border-white/20 p-4" style={{ backgroundColor: '#003D5B' }}>
         <div className="max-w-4xl mx-auto">
           <form 
             onSubmit={(e) => {
@@ -248,13 +266,13 @@ export default function ChatInterface() {
                 value={input}
                 placeholder="Ask about Concentrix SEO performance, analyze pages, or get optimization recommendations..."
                 onChange={(e) => setInput(e.target.value)}
-                className="w-full px-4 py-3 pr-12 text-body font-regular text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none shadow-sm"
+                className="w-full px-4 py-3 pr-12 text-body font-regular text-gray-900 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-lg placeholder:text-gray-500"
                 disabled={isLoading}
               />
               <button 
                 type="submit" 
                 disabled={isLoading || !input?.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

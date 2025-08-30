@@ -6,10 +6,9 @@ import { usePathname } from 'next/navigation';
 import { 
   MessageCircle, 
   Globe, 
-  BarChart3, 
-  Menu, 
-  X,
-  Plus
+  BarChart3,
+  PanelLeftOpen,
+  PanelLeftClose
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -43,34 +42,39 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={onToggle}
-        />
-      )}
-      
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 z-50 h-full w-64 bg-[#003D5B] text-white transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 md:static md:z-auto
+        fixed top-0 left-0 z-40 h-full bg-[#003D5B] text-white transition-all duration-300 ease-in-out border-r border-white/20
+        ${isOpen ? 'w-64' : 'w-16'}
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="SEO Assistant Logo" />
-          </Link>
-          
-          {/* Close button for mobile */}
-          <button
-            onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-slate-800 md:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <div className="flex items-center justify-center p-4 border-b border-slate-700">
+          {isOpen ? (
+            <div className="flex items-center justify-between w-full">
+              <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.svg" alt="SEO Assistant Logo" />
+              </Link>
+              
+              {/* Toggle Button when expanded */}
+              <button
+                onClick={onToggle}
+                className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="w-4 h-4 text-slate-300" />
+              </button>
+            </div>
+          ) : (
+            /* Toggle Button replaces logo when collapsed */
+            <button
+              onClick={onToggle}
+              className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
+              title="Expand sidebar"
+            >
+              <PanelLeftOpen className="w-5 h-5 text-slate-300" />
+            </button>
+          )}
         </div>
 
         {/* New Chat Button - Hidden for now */}
@@ -84,30 +88,43 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div> */}
 
         {/* Navigation */}
-        <nav className="px-4 pb-4">
+        <nav className={`${isOpen ? 'px-4' : 'px-2'} pb-4 transition-all duration-300`}>
           <div className="space-y-2">
-            {navigation.map((item) => {
+            {navigation.map((item, index) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={`
-                    flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors
+                    flex items-center rounded-lg transition-all duration-300 ease-in-out
+                    ${isOpen ? 'space-x-3 px-3 py-2.5' : 'justify-center p-2.5'}
                     ${item.current 
                       ? 'bg-slate-800 text-white' 
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }
                   `}
+                  title={!isOpen ? item.name : undefined}
                   onClick={() => {
-                    // Close mobile menu on navigation
-                    if (window.innerWidth < 768) {
-                      onToggle();
-                    }
+                    // Don't close sidebar on navigation like ChatGPT
+                  }}
+                  style={{
+                    transitionDelay: isOpen ? `${index * 50}ms` : '0ms'
                   }}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-body font-medium">{item.name}</span>
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <span 
+                    className={`text-body font-medium transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
+                      isOpen 
+                        ? 'opacity-100 max-w-full transform translate-x-0' 
+                        : 'opacity-0 max-w-0 transform -translate-x-2'
+                    }`}
+                    style={{
+                      transitionDelay: isOpen ? `${150 + index * 50}ms` : '0ms'
+                    }}
+                  >
+                    {item.name}
+                  </span>
                 </Link>
               );
             })}
@@ -115,12 +132,23 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </nav>
 
         {/* Bottom section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
-          <div className="text-caption font-regular text-slate-400 text-center">
-            <p>Concentrix SEO Assistant</p>
-            <p className="mt-1 text-caption font-regular">For internal team use only</p>
+        {isOpen && (
+          <div 
+            className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 transition-all duration-300 ease-in-out"
+            style={{
+              transitionDelay: '300ms'
+            }}
+          >
+            <div className="text-caption font-regular text-slate-400 text-center">
+              <p className="transition-opacity duration-300 ease-in-out" style={{ transitionDelay: '400ms' }}>
+                Concentrix SEO Assistant
+              </p>
+              <p className="mt-1 text-caption font-regular transition-opacity duration-300 ease-in-out" style={{ transitionDelay: '450ms' }}>
+                For internal team use only
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
