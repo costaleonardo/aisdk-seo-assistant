@@ -8,7 +8,8 @@ import {
   Globe, 
   BarChart3,
   PanelLeftOpen,
-  PanelLeftClose
+  PanelLeftClose,
+  Search
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +32,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       href: '/scraper',
       icon: Globe,
       current: pathname === '/scraper'
+    },
+    {
+      name: 'Search Console',
+      href: '/search-console-test',
+      icon: Search,
+      current: pathname === '/search-console-test'
     },
     // {
     //   name: 'SEO Analysis',

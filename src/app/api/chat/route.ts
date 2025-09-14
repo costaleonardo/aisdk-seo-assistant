@@ -5,6 +5,16 @@ import { z } from 'zod';
 import { vectorSearch, getDocumentById, getAllDocuments, getHomepageDocument } from '@/lib/vector-store';
 import { performSEOAnalysis } from '@/lib/seo-analyzer';
 import { calculateSEOScore, getScoreInterpretation } from '@/lib/seo-scoring';
+import { scrapeWebsite } from '@/lib/scraper';
+import { 
+  SearchConsoleTools,
+  getTopPerformingContentSchema,
+  getKeywordPerformanceSchema,
+  getContentTypeAnalysisSchema,
+  getSEOOpportunitiesSchema,
+  getSearchConsoleInsightsSchema,
+  getURLMetricsSchema
+} from '@/lib/search-console-tools';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +31,9 @@ export async function POST(request: NextRequest) {
       content: msg.content || ''
     }));
 
+    // Initialize Search Console tools
+    const searchConsoleTools = new SearchConsoleTools();
+
     const result = streamText({
       model: openai('gpt-4o'),
       system: `You are an expert SEO specialist and content quality analyst specifically for Concentrix. You have access to the complete Concentrix website content stored in a vector database, along with comprehensive SEO metadata and advanced content quality metrics for each page.
@@ -33,6 +46,7 @@ You can:
 5. Compare SEO performance and content quality between different pages
 6. Generate prioritized improvement recommendations for both SEO and content quality
 7. Access detailed heading structures, meta tags, technical SEO data, and content metrics
+8. **NEW: Access Google Search Console data for real traffic and keyword performance**
 
 Content Quality Features Available:
 - Word count, sentence count, paragraph analysis
@@ -42,6 +56,13 @@ Content Quality Features Available:
 - Content type classification (informational, commercial, navigational, mixed)
 - Reading time estimation and target audience identification
 
+Search Console Features Available (NEW):
+- Real organic traffic data from Google Search Console (16 months historical)
+- Keyword performance analysis (clicks, impressions, CTR, positions)
+- Content performance insights (which pages get the most traffic)
+- SEO opportunities identification (striking distance keywords, optimization potential)
+- Traffic analysis by content type (insights posts, services pages, etc.)
+
 Available Tools:
 - getHomepage: Get the Concentrix homepage specifically (use when users ask about "homepage", "home page", "main page")
 - searchContent: Vector search through Concentrix content
@@ -50,6 +71,14 @@ Available Tools:
 - analyzeContentQuality: Deep content quality metrics analysis
 - checkReadability: Readability and target audience analysis
 - analyzeContentDepth: Content depth, topic coverage, and semantic richness
+- **NEW analyzeURL**: Analyze SEO metrics and content quality for ANY external URL (not just stored content)
+- **NEW Search Console Tools:**
+  - getTopPerformingContent: Find content that gets the most SEO traffic
+  - getKeywordPerformance: Analyze keyword performance and rankings
+  - getContentTypeAnalysis: Compare performance across content types
+  - getSEOOpportunities: Identify SEO improvement opportunities
+  - getSearchConsoleInsights: Get comprehensive SEO performance overview
+  - getURLMetrics: Get Search Console metrics for a specific URL
 
 IMPORTANT: All Concentrix website content has been pre-scraped and stored in your database. You don't need URLs - just search for relevant content based on the user's query.
 
@@ -60,6 +89,17 @@ When users ask about:
 - "content quality" → Use content quality analysis tools
 - "readability" → Use readability analysis tools
 - SEO analysis → Search for relevant pages and analyze their comprehensive data
+- **NEW External URL Analysis**: Use analyzeURL for any specific URL provided (like "analyze https://www.concentrix.com/specific-page/")
+- **NEW Search Console Queries:**
+  - "what gets the most traffic" → Use getTopPerformingContent
+  - "which insights posts perform best" → Use getTopPerformingContent with contentType: 'insights'
+  - "what are our top keywords" → Use getKeywordPerformance
+  - "keyword performance" → Use getKeywordPerformance
+  - "how do our content types compare" → Use getContentTypeAnalysis
+  - "SEO opportunities" → Use getSEOOpportunities
+  - "SEO performance overview" → Use getSearchConsoleInsights
+  - **"Search Console metrics for [URL]"** → Use getURLMetrics with the specific URL
+  - **"How many clicks does [URL] get?"** → Use getURLMetrics for that URL
 
 CRITICAL: NEVER use searchContent for homepage queries. The homepage is always at https://www.concentrix.com/ and must be retrieved using getHomepage tool only.
 
@@ -478,6 +518,122 @@ Guidelines:
                 error: error instanceof Error ? error.message : 'Failed to analyze content depth'
               };
             }
+          }
+        }),
+
+        // URL ANALYSIS TOOL
+        analyzeURL: tool({
+          description: 'Analyze SEO metrics and content quality for any external URL',
+          inputSchema: z.object({
+            url: z.string().url().describe('The URL to analyze for SEO performance and content quality')
+          }),
+          execute: async ({ url }) => {
+            console.log('analyzeURL called with:', url);
+            try {
+              // Scrape the website to get content and SEO data
+              const scrapedContent = await scrapeWebsite(url);
+              
+              // Perform comprehensive SEO analysis
+              const seoAnalysis = performSEOAnalysis(scrapedContent);
+              
+              // Calculate overall SEO score
+              const scoreData = calculateSEOScore(seoAnalysis);
+              const scoreInterpretation = getScoreInterpretation(scoreData);
+              
+              // Collect all recommendations for prioritized improvements
+              const allRecommendations = [
+                ...seoAnalysis.title.recommendations.map(rec => ({ category: 'Title', issue: rec })),
+                ...seoAnalysis.meta_description.recommendations.map(rec => ({ category: 'Meta Description', issue: rec })),
+                ...seoAnalysis.headings.recommendations.map(rec => ({ category: 'Headings', issue: rec })),
+                ...seoAnalysis.keywords.recommendations.map(rec => ({ category: 'Keywords', issue: rec })),
+                ...seoAnalysis.links.recommendations.map(rec => ({ category: 'Links', issue: rec })),
+                ...seoAnalysis.images.recommendations.map(rec => ({ category: 'Images', issue: rec })),
+                ...seoAnalysis.technical.recommendations.map(rec => ({ category: 'Technical SEO', issue: rec }))
+              ];
+
+              return {
+                success: true,
+                url,
+                title: scrapedContent.title,
+                analysis: {
+                  seo: seoAnalysis,
+                  score: scoreData,
+                  interpretation: scoreInterpretation,
+                  content_quality: scrapedContent.content_quality,
+                  recommendations: allRecommendations,
+                  priority_issues: scoreData.priority_issues
+                },
+                summary: `SEO Analysis for ${url}:
+• Overall Score: ${scoreData.overall_score}/100 (${scoreData.grade})
+• Content: ${scrapedContent.content_quality.word_count} words, ${scrapedContent.content_quality.readability_score}/100 readability
+• Content Type: ${scrapedContent.content_quality.content_type}
+• Reading Time: ${scrapedContent.content_quality.reading_time_minutes} minutes
+• Top Issues: ${scoreData.priority_issues.slice(0, 3).map(p => p.issue).join(', ')}
+• Total Recommendations: ${allRecommendations.length}`
+              };
+            } catch (error) {
+              console.error('analyzeURL error:', error);
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to analyze URL',
+                url
+              };
+            }
+          }
+        }),
+
+        // NEW SEARCH CONSOLE TOOLS
+        getTopPerformingContent: tool({
+          description: 'Find content that gets the most SEO traffic from Google Search Console data',
+          inputSchema: getTopPerformingContentSchema,
+          execute: async (params) => {
+            console.log('getTopPerformingContent called with:', params);
+            return await searchConsoleTools.getTopPerformingContent(params);
+          }
+        }),
+
+        getKeywordPerformance: tool({
+          description: 'Analyze keyword performance and rankings from Google Search Console',
+          inputSchema: getKeywordPerformanceSchema,
+          execute: async (params) => {
+            console.log('getKeywordPerformance called with:', params);
+            return await searchConsoleTools.getKeywordPerformance(params);
+          }
+        }),
+
+        getContentTypeAnalysis: tool({
+          description: 'Compare SEO performance across different content types (insights, services, etc.)',
+          inputSchema: getContentTypeAnalysisSchema,
+          execute: async (params) => {
+            console.log('getContentTypeAnalysis called with:', params);
+            return await searchConsoleTools.getContentTypeAnalysis(params);
+          }
+        }),
+
+        getSEOOpportunities: tool({
+          description: 'Identify SEO improvement opportunities like striking distance keywords',
+          inputSchema: getSEOOpportunitiesSchema,
+          execute: async (params) => {
+            console.log('getSEOOpportunities called with:', params);
+            return await searchConsoleTools.getSEOOpportunities(params);
+          }
+        }),
+
+        getSearchConsoleInsights: tool({
+          description: 'Get comprehensive SEO performance overview from Google Search Console',
+          inputSchema: getSearchConsoleInsightsSchema,
+          execute: async (params) => {
+            console.log('getSearchConsoleInsights called with:', params);
+            return await searchConsoleTools.getSearchConsoleInsights(params);
+          }
+        }),
+
+        getURLMetrics: tool({
+          description: 'Get Search Console metrics (clicks, impressions, CTR, position) for a specific URL',
+          inputSchema: getURLMetricsSchema,
+          execute: async (params) => {
+            console.log('getURLMetrics called with:', params);
+            return await searchConsoleTools.getURLMetrics(params);
           }
         })
       }
