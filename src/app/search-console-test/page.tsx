@@ -259,7 +259,7 @@ export default function SearchConsoleTestPage() {
           <CardContent>
             <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded">
               <p className="text-sm text-yellow-800">
-                <strong>Perfect for SEO specialist queries:</strong> "What gets the most SEO traffic overall?"
+                <strong>Perfect for SEO specialist queries:</strong> &ldquo;What gets the most SEO traffic overall?&rdquo;
               </p>
             </div>
             <button
@@ -569,7 +569,7 @@ export default function SearchConsoleTestPage() {
             
             {comparisonData && (
               <div className="space-y-4">
-                <h4 className="font-medium">Results for: "{comparisonData.query}"</h4>
+                <h4 className="font-medium">Results for: &ldquo;{comparisonData.query}&rdquo;</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {Object.entries(comparisonData.data).map(([method, data]: [string, any]) => (
                     <div key={method} className="border rounded p-3">
@@ -609,7 +609,7 @@ export default function SearchConsoleTestPage() {
           <CardContent>
             <div className="mb-4 p-3 bg-purple-100 border border-purple-300 rounded">
               <p className="text-sm text-purple-800">
-                <strong>SEO Specialist Query:</strong> "What keywords drive the most traffic overall?"
+                <strong>SEO Specialist Query:</strong> &ldquo;What keywords drive the most traffic overall?&rdquo;
               </p>
             </div>
             <button
@@ -660,7 +660,7 @@ export default function SearchConsoleTestPage() {
           <CardContent>
             <div className="mb-4 p-3 bg-blue-100 border border-blue-300 rounded">
               <p className="text-sm text-blue-800">
-                <strong>SEO Specialist Query:</strong> "Which pages get the most organic traffic overall?"
+                <strong>SEO Specialist Query:</strong> &ldquo;Which pages get the most organic traffic overall?&rdquo;
               </p>
             </div>
             <button
@@ -709,7 +709,7 @@ export default function SearchConsoleTestPage() {
           <CardContent>
             <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded">
               <p className="text-sm text-green-800">
-                <strong>SEO Specialist Query:</strong> "Which Insights posts get the most SEO traffic?"
+                <strong>SEO Specialist Query:</strong> &ldquo;Which Insights posts get the most SEO traffic?&rdquo;
               </p>
             </div>
             <button

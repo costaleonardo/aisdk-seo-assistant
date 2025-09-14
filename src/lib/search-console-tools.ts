@@ -104,8 +104,8 @@ export class SearchConsoleTools {
     const { timeframe = 'both', limit = 20 } = params;
 
     try {
-      let allTimeData;
-      let recentData;
+      let allTimeData: any = undefined;
+      let recentData: any = undefined;
 
       if (timeframe === 'all-time' || timeframe === 'both') {
         allTimeData = await this.service.getAllTimeTopQueries(limit);
@@ -124,11 +124,11 @@ export class SearchConsoleTools {
       } as any;
 
       if (allTimeData) {
-        const allTimeTotal = allTimeData.reduce((sum, item) => sum + (item.clicks || 0), 0);
+        const allTimeTotal = allTimeData.reduce((sum: number, item: any) => sum + (item.clicks || 0), 0);
         analysis.allTimePerformance = {
           totalClicks: allTimeTotal,
           dateRange: '16 months',
-          topKeywords: allTimeData.slice(0, limit).map((item, index) => ({
+          topKeywords: allTimeData.slice(0, limit).map((item: any, index: number) => ({
             rank: index + 1,
             keyword: item.keys?.[0] || 'N/A',
             clicks: item.clicks || 0,
@@ -141,11 +141,11 @@ export class SearchConsoleTools {
       }
 
       if (recentData) {
-        const recentTotal = recentData.reduce((sum, item) => sum + (item.clicks || 0), 0);
+        const recentTotal = recentData.reduce((sum: number, item: any) => sum + (item.clicks || 0), 0);
         analysis.recentPerformance = {
           totalClicks: recentTotal,
           dateRange: '28 days',
-          topKeywords: recentData.slice(0, limit).map((item, index) => ({
+          topKeywords: recentData.slice(0, limit).map((item: any, index: number) => ({
             rank: index + 1,
             keyword: item.keys?.[0] || 'N/A',
             clicks: item.clicks || 0,
@@ -326,7 +326,7 @@ export class SearchConsoleTools {
           bestKeyword: {
             keyword: summary.topQuery?.keys?.[0],
             clicks: summary.topQuery?.clicks?.toLocaleString(),
-            dominance: summary.topQuery && summary.totalClicks ? 
+            dominance: summary.topQuery?.clicks && summary.totalClicks ? 
               ((summary.topQuery.clicks / summary.totalClicks) * 100).toFixed(1) + '% of total traffic' : 'N/A'
           },
           bestPage: {
