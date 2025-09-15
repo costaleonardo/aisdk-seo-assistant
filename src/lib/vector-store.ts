@@ -47,7 +47,7 @@ export async function storeDocument(
           meta_title, meta_description, meta_keywords, meta_robots, canonical_url,
           og_title, og_description, og_image, og_type,
           twitter_title, twitter_description, twitter_image, twitter_card,
-          schema_markup,
+          schema_markup, primary_keyword,
           word_count, sentence_count, paragraph_count, average_sentence_length, 
           average_words_per_paragraph, readability_score, reading_time_minutes,
           content_depth_score, topic_keywords, semantic_keywords, content_type
@@ -70,6 +70,7 @@ export async function storeDocument(
           ${seo_data.twitter_image || null},
           ${seo_data.twitter_card || null},
           ${JSON.stringify(seo_data.schema_markup)},
+          ${seo_data.primary_keyword || null},
           ${content_quality.word_count},
           ${content_quality.sentence_count},
           ${content_quality.paragraph_count},
@@ -93,7 +94,7 @@ export async function storeDocument(
           meta_title, meta_description, meta_keywords, meta_robots, canonical_url,
           og_title, og_description, og_image, og_type,
           twitter_title, twitter_description, twitter_image, twitter_card,
-          schema_markup
+          schema_markup, primary_keyword
         )
         VALUES (
           ${scrapedContent.url}, 
@@ -112,7 +113,8 @@ export async function storeDocument(
           ${seo_data.twitter_description || null},
           ${seo_data.twitter_image || null},
           ${seo_data.twitter_card || null},
-          ${JSON.stringify(seo_data.schema_markup)}
+          ${JSON.stringify(seo_data.schema_markup)},
+          ${seo_data.primary_keyword || null}
         )
         RETURNING id, url, title
       `;

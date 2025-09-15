@@ -32,6 +32,7 @@ export interface Document {
   twitter_image?: string | null;
   twitter_card?: string | null;
   schema_markup?: string[] | null;
+  primary_keyword?: string | null;
   // Content quality metrics columns
   word_count?: number | null;
   sentence_count?: number | null;
