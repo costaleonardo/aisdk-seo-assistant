@@ -236,6 +236,7 @@ export interface SEOData {
   twitter_image?: string;
   twitter_card?: string;
   schema_markup: string[];
+  primary_keyword?: string;
 }
 
 export interface ScrapedContent {
@@ -286,7 +287,8 @@ export async function scrapeWebsite(url: string): Promise<ScrapedContent> {
       twitter_description: $('meta[name="twitter:description"]').attr('content'),
       twitter_image: $('meta[name="twitter:image"]').attr('content'),
       twitter_card: $('meta[name="twitter:card"]').attr('content'),
-      schema_markup: []
+      schema_markup: [],
+      primary_keyword: $('meta[name="yoast-focus-keyword"]').attr('content')
     };
 
     // Extract Schema markup (JSON-LD)
