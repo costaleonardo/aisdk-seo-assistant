@@ -316,6 +316,39 @@ export async function getDocumentChunks(documentId: number): Promise<DocumentChu
   }
 }
 
+// Search documents by focus keyword (Yoast primary keyword)
+export async function searchByFocusKeyword(query: string): Promise<Document[]> {
+  try {
+    if (!query.trim()) {
+      return [];
+    }
+    
+    const queryLower = query.toLowerCase().trim();
+    
+    // Search for exact matches first, then partial matches
+    const results = await sql`
+      SELECT * FROM documents 
+      WHERE 
+        LOWER(primary_keyword) = ${queryLower}
+        OR LOWER(primary_keyword) LIKE ${`%${queryLower}%`}
+        OR LOWER(${queryLower}) LIKE '%' || LOWER(primary_keyword) || '%'
+      ORDER BY 
+        CASE 
+          WHEN LOWER(primary_keyword) = ${queryLower} THEN 1
+          WHEN LOWER(primary_keyword) LIKE ${`%${queryLower}%`} THEN 2
+          ELSE 3
+        END,
+        created_at DESC
+    `;
+    
+    console.log(`Focus keyword search for "${query}": found ${results.length} matches`);
+    return results as Document[];
+  } catch (error) {
+    console.error('Focus keyword search error:', error);
+    return [];
+  }
+}
+
 // SEO-specific helper functions
 export async function getDocumentSEOData(documentId: number) {
   try {
@@ -487,6 +520,67 @@ export async function getHomepageDocument(): Promise<Document | null> {
   } catch (error) {
     console.error('❌ Error finding homepage:', error);
     return null;
+  }
+}
+
+// Function to check which URLs already exist in the database
+export async function checkExistingUrls(urls: string[]): Promise<{
+  existing: string[];
+  new: string[];
+}> {
+  try {
+    if (urls.length === 0) {
+      return { existing: [], new: [] };
+    }
+
+    // Query database for existing URLs
+    const existingResults = await sql`
+      SELECT url FROM documents 
+      WHERE url = ANY(${urls})
+    `;
+    
+    const existingUrls = existingResults.map((row: any) => row.url);
+    const newUrls = urls.filter(url => !existingUrls.includes(url));
+    
+    return {
+      existing: existingUrls,
+      new: newUrls
+    };
+  } catch (error) {
+    console.error('Error checking existing URLs:', error);
+    // On error, assume all URLs are new to avoid blocking scraping
+    return { existing: [], new: urls };
+  }
+}
+
+// Function to get basic info about existing documents
+export async function getExistingDocumentsInfo(urls: string[]): Promise<Array<{
+  url: string;
+  id: number;
+  title: string | null;
+  created_at: Date;
+}>> {
+  try {
+    if (urls.length === 0) {
+      return [];
+    }
+
+    const results = await sql`
+      SELECT id, url, title, created_at 
+      FROM documents 
+      WHERE url = ANY(${urls})
+      ORDER BY created_at DESC
+    `;
+    
+    return results.map((row: any) => ({
+      url: row.url,
+      id: row.id,
+      title: row.title,
+      created_at: row.created_at
+    }));
+  } catch (error) {
+    console.error('Error getting existing documents info:', error);
+    return [];
   }
 }
 

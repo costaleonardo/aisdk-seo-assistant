@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { streamText, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
-import { vectorSearch, getDocumentById, getAllDocuments, getHomepageDocument } from '@/lib/vector-store';
+import { vectorSearch, getDocumentById, getAllDocuments, getHomepageDocument, searchByFocusKeyword } from '@/lib/vector-store';
 import { performSEOAnalysis } from '@/lib/seo-analyzer';
 import { calculateSEOScore, getScoreInterpretation } from '@/lib/seo-scoring';
 import { scrapeWebsite } from '@/lib/scraper';
@@ -65,7 +65,8 @@ Search Console Features Available (NEW):
 
 Available Tools:
 - getHomepage: Get the Concentrix homepage specifically (use when users ask about "homepage", "home page", "main page")
-- searchContent: Vector search through Concentrix content
+- searchContent: Vector search through Concentrix content (now automatically prioritizes pages with matching focus keywords)
+- **NEW findPageByKeyword**: Find pages by their Yoast focus keyword - use when users ask about specific keywords or topics
 - analyzePage: Comprehensive SEO + content quality analysis by document ID
 - listPages: Browse available pages in the database
 - analyzeContentQuality: Deep content quality metrics analysis
@@ -86,6 +87,7 @@ When users ask about:
 - "our homepage" or "home page" → ALWAYS use getHomepage tool first (NEVER use searchContent for homepage queries)
 - "homepage meta description" → Use getHomepage, then analyzePage with the returned document ID
 - "our services" → Search for services-related content
+- **NEW Focus keyword queries**: "concentrix sustainability", "customer experience", etc. → Use findPageByKeyword for exact keyword matches
 - "content quality" → Use content quality analysis tools
 - "readability" → Use readability analysis tools
 - SEO analysis → Search for relevant pages and analyze their comprehensive data
@@ -105,6 +107,8 @@ CRITICAL: NEVER use searchContent for homepage queries. The homepage is always a
 
 Guidelines:
 - Use search tools to find relevant Concentrix content based on queries
+- **NEW**: For keyword-specific queries, try findPageByKeyword first to find pages with exact focus keyword matches
+- The searchContent tool now automatically prioritizes focus keyword matches when available
 - Analyze both SEO metadata AND content quality metrics for comprehensive insights
 - Explain technical SEO and content concepts in accessible language
 - Prioritize high-impact improvements for both SEO and content strategy
@@ -198,8 +202,8 @@ Guidelines:
                         const doc = await getDocumentById(result.document_id);
                         return {
                           ...result,
-                          url: doc?.url,
-                          title: doc?.title,
+                          url: doc?.url || '',
+                          title: doc?.title ?? null,
                           meta_description: doc?.meta_description
                         };
                       })
@@ -227,15 +231,63 @@ Guidelines:
                 }
               }
               
-              // Regular vector search
+              // Check for focus keyword matches first
+              const focusKeywordMatches = await searchByFocusKeyword(query);
+              if (focusKeywordMatches.length > 0) {
+                console.log(`Found ${focusKeywordMatches.length} focus keyword matches for "${query}"`);
+                
+                // Create results from focus keyword matches
+                const keywordResults = focusKeywordMatches.slice(0, Math.min(limit, focusKeywordMatches.length)).map((doc, index) => ({
+                  document_id: doc.id,
+                  content: doc.content?.substring(0, 500) + '...' || 'Content preview not available',
+                  similarity: 1.0 - (index * 0.1), // Prioritize by order, starting from 1.0
+                  chunk_id: 0,
+                  url: doc.url,
+                  title: doc.title,
+                  meta_description: doc.meta_description,
+                  primary_keyword: doc.primary_keyword
+                }));
+                
+                // If we found focus keyword matches but need more results, supplement with vector search
+                let allResults = [...keywordResults];
+                if (keywordResults.length < limit) {
+                  const remainingLimit = limit - keywordResults.length;
+                  const vectorResults = await vectorSearch(query, remainingLimit);
+                  const enrichedVectorResults = await Promise.all(
+                    vectorResults
+                      .filter(result => !focusKeywordMatches.some(doc => doc.id === result.document_id)) // Avoid duplicates
+                      .map(async (result) => {
+                        const doc = await getDocumentById(result.document_id);
+                        return {
+                          ...result,
+                          url: doc?.url || '',
+                          title: doc?.title ?? null,
+                          meta_description: doc?.meta_description,
+                          primary_keyword: doc?.primary_keyword
+                        };
+                      })
+                  );
+                  allResults = [...keywordResults, ...enrichedVectorResults];
+                }
+                
+                console.log('searchContent results (focus keyword prioritized):', allResults.length);
+                return {
+                  success: true,
+                  results: allResults,
+                  count: allResults.length,
+                  note: `Found ${focusKeywordMatches.length} pages with matching focus keywords`
+                };
+              }
+              
+              // Regular vector search (when no focus keyword matches)
               const results = await vectorSearch(query, limit);
               const enrichedResults = await Promise.all(
                 results.map(async (result) => {
                   const doc = await getDocumentById(result.document_id);
                   return {
                     ...result,
-                    url: doc?.url,
-                    title: doc?.title,
+                    url: doc?.url || '',
+                    title: doc?.title ?? null,
                     meta_description: doc?.meta_description
                   };
                 })
@@ -251,6 +303,50 @@ Guidelines:
               return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Search failed'
+              };
+            }
+          }
+        }),
+        findPageByKeyword: tool({
+          description: 'Find pages by their Yoast focus keyword (primary_keyword) - use this when users ask about specific keywords or topics that might be focus keywords',
+          inputSchema: z.object({
+            keyword: z.string().describe('The focus keyword to search for (e.g., "concentrix sustainability", "customer experience")')
+          }),
+          execute: async ({ keyword }) => {
+            console.log('findPageByKeyword called with:', keyword);
+            try {
+              const results = await searchByFocusKeyword(keyword);
+              
+              if (results.length === 0) {
+                return {
+                  success: true,
+                  pages: [],
+                  count: 0,
+                  message: `No pages found with focus keyword matching "${keyword}"`
+                };
+              }
+              
+              const pageData = results.map(doc => ({
+                document_id: doc.id,
+                url: doc.url,
+                title: doc.title,
+                meta_description: doc.meta_description,
+                primary_keyword: doc.primary_keyword,
+                content_preview: doc.content?.substring(0, 300) + '...' || 'No preview available'
+              }));
+              
+              console.log(`Found ${results.length} pages with focus keyword matching "${keyword}"`);
+              return {
+                success: true,
+                pages: pageData,
+                count: results.length,
+                message: `Found ${results.length} pages with focus keyword matching "${keyword}"`
+              };
+            } catch (error) {
+              console.error('findPageByKeyword error:', error);
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to search by focus keyword'
               };
             }
           }

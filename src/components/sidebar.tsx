@@ -33,12 +33,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       icon: Globe,
       current: pathname === '/scraper'
     },
-    {
-      name: 'Search Console',
-      href: '/search-console-test',
-      icon: Search,
-      current: pathname === '/search-console-test'
-    },
+    // {
+    //   name: 'Search Console',
+    //   href: '/search-console-test',
+    //   icon: Search,
+    //   current: pathname === '/search-console-test'
+    // },
     // {
     //   name: 'SEO Analysis',
     //   href: '/seo-analysis',

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-This is a **complete SEO Assistant** with AI-powered chat capabilities and comprehensive SEO analysis tools. The system includes advanced SEO scoring, comparison, keyword analysis, actionable recommendations, and AI tool calling for expert SEO guidance. All core functionality is implemented (~99% complete).
+This is a **complete SEO Assistant** with AI-powered chat capabilities, comprehensive SEO analysis tools, and Google Search Console integration. The system includes advanced SEO scoring, comparison, keyword analysis, actionable recommendations, AI tool calling for expert SEO guidance, and real-time GSC data analysis. All core functionality is implemented (~99% complete).
 
 ## Development Commands
 
@@ -26,18 +26,25 @@ This is a **Next.js 14 application** using the Vercel AI SDK that:
 3. Stores vectors in Neon PostgreSQL with pgvector extension
 4. Provides AI-powered chat with SEO tool calling capabilities
 5. Performs comprehensive SEO analysis with scoring and recommendations
+6. Integrates with Google Search Console API for real-time performance data
 
 ### Core Data Flow
 - **Ingestion**: URL → Web Scraping (+ SEO Data) → Text Chunking → Embedding Generation → Vector Storage
 - **SEO Analysis**: URL → Comprehensive Scraping → SEO Scoring → Recommendations Generation
 - **AI Chat**: User Query → Tool Selection → SEO Analysis Execution → Expert Recommendations → Streaming Response
-- **Tool Integration**: 6 SEO tools accessible via AI chat
+- **Search Console**: Real-time GSC data retrieval → Performance analysis → Keyword insights → Content optimization
+- **Tool Integration**: 7 SEO tools + 13 Search Console endpoints accessible via AI chat
 
 ## Required Environment Variables
 
 ```bash
-OPENAI_API_KEY=sk-...           # OpenAI API key for embeddings and chat
-DATABASE_URL=postgresql://...   # Neon PostgreSQL connection string
+OPENAI_API_KEY=sk-...                    # OpenAI API key for embeddings and chat
+DATABASE_URL=postgresql://...            # Neon PostgreSQL connection string
+
+# Google Search Console Integration
+GOOGLE_SERVICE_ACCOUNT_EMAIL=...         # Service account email for GSC API
+GOOGLE_PRIVATE_KEY=...                   # Service account private key (base64 encoded)
+SEARCH_CONSOLE_SITE_URL=https://...      # Verified GSC property URL
 ```
 
 ## Database Schema
@@ -78,12 +85,28 @@ The chat system implements sophisticated AI tool orchestration:
 - Comprehensive content cleaning and normalization
 
 ### API Endpoints
+
+**Core SEO APIs**:
 - **POST /api/scrape**: Scrapes URL and stores embeddings with SEO metadata
 - **POST /api/chat**: Multi-step AI tool calling with streaming responses  
 - **POST /api/seo/analyze**: Comprehensive SEO analysis with scoring
 - **POST /api/seo/compare**: Compare SEO performance between two URLs
 - **POST /api/seo/keywords**: Extract and analyze keyword density
 - **POST /api/seo/suggestions**: Generate prioritized actionable recommendations
+
+**Google Search Console APIs**:
+- **GET /api/search-console/test**: Test GSC API connection and authentication
+- **GET /api/search-console/top-queries**: Top performing queries with metrics
+- **GET /api/search-console/top-pages**: Top performing pages with metrics
+- **GET /api/search-console/striking-distance**: Keywords ranking 11-20 (opportunity analysis)
+- **GET /api/search-console/aggregated-queries**: Query performance aggregated by time periods
+- **GET /api/search-console/all-time-queries**: Complete query history with trends
+- **GET /api/search-console/all-time-pages**: Complete page performance history
+- **GET /api/search-console/compare**: Compare page/query performance between periods
+- **GET /api/search-console/content-type**: Performance analysis by content type
+- **GET /api/search-console/keywords**: Keyword analysis and clustering
+- **GET /api/search-console/insights-posts**: Blog post performance insights
+- **GET /api/search-console/lifetime-summary**: Overall property performance summary
 
 ## Project Structure
 
@@ -105,13 +128,15 @@ src/
 │   ├── seo/                   # SEO UI components
 │   └── ui/                    # Reusable base components
 └── lib/
-    ├── scraper.ts             # Web scraping logic
-    ├── chunking.ts            # Text segmentation
-    ├── vector-store.ts        # Vector database operations
-    ├── seo-analyzer.ts        # SEO analysis functions
-    ├── seo-scoring.ts         # Scoring algorithms
-    ├── seo-tools.ts           # AI tool implementations
-    └── db.ts                  # Database client
+    ├── scraper.ts                    # Web scraping logic
+    ├── chunking.ts                   # Text segmentation
+    ├── vector-store.ts               # Vector database operations
+    ├── seo-analyzer.ts               # SEO analysis functions
+    ├── seo-scoring.ts                # Scoring algorithms
+    ├── seo-tools.ts                  # AI tool implementations
+    ├── google-search-console.ts     # GSC API service class
+    ├── search-console-tools.ts      # GSC data analysis utilities
+    └── db.ts                         # Database client
 
 ```
 
@@ -144,6 +169,8 @@ src/
 - ✅ UI components with streaming support
 - ✅ Multi-step AI tool calling
 - ✅ SEO analysis and scoring
+- ✅ Google Search Console integration with 13 endpoints
+- ✅ Real-time GSC data analysis and insights
 - ✅ Sidebar navigation and page routing
 
 **Remaining**: Testing, deployment configuration
@@ -173,6 +200,29 @@ When setting up the database, run migrations in this order:
 1. `database/schema.sql` - Base schema with documents and document_chunks
 2. `database/migration-seo-schema.sql` - SEO metadata tables (meta_tags, headings, links, images)  
 3. `database/migration-content-quality-metrics.sql` - Content analysis metrics columns
+
+## Google Search Console Integration
+
+The system includes comprehensive GSC integration via Google APIs:
+
+**Service Architecture** (`src/lib/google-search-console.ts`):
+- `GoogleSearchConsoleService` class with OAuth 2.0 service account authentication
+- Supports read-only access to verified GSC properties
+- Built-in connection testing and error handling
+- Standardized response format for all endpoints
+
+**Key Features**:
+- **Performance Data**: Query/page metrics (clicks, impressions, CTR, position)
+- **Opportunity Analysis**: "Striking distance" keywords (positions 11-20)
+- **Content Insights**: Performance analysis by content type and topic
+- **Historical Trends**: All-time data with period comparisons
+- **Keyword Analysis**: Query clustering and search intent analysis
+
+**Authentication Setup**:
+1. Create Google Cloud Project with Search Console API enabled
+2. Generate service account credentials (JSON key file)
+3. Add service account email to GSC property as verified user
+4. Set environment variables for email, private key, and site URL
 
 ## AI Chat System Architecture
 
