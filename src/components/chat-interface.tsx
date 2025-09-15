@@ -31,8 +31,16 @@ export default function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Scroll to top on initial mount
   useEffect(() => {
-    scrollToBottom();
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    // Only scroll to bottom when there are actual messages (user has started chatting)
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const handleSendMessage = async (messageContent: string) => {
@@ -122,7 +130,7 @@ export default function ChatInterface() {
                 <svg className="mx-auto h-16 w-16 text-white/70 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <h2 className="font-montserrat font-semibold text-[48px] text-white mb-2 mt-8">Concentrix SEO Assistant</h2>
+                <h2 className="font-montserrat font-semibold text-2xl sm:text-3xl md:text-4xl lg:text-[48px] text-white mb-2 mt-8">Concentrix SEO Assistant</h2>
                 <p className="font-montserrat text-body font-regular text-white/80 mb-8 max-w-3xl mx-auto">
                   Welcome, team member! I have access to all Concentrix website content and can help you optimize 
                   our SEO performance. Ask me about our pages, content analysis, or SEO improvements.
